@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpawnActorDeferred 흐름 다이어그램</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .diagram-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 280px;
+            background-color: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            background-color: #ffffff;
+            color: #333;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        button:hover {
+            background-color: #f5f5f5;
+            border-color: #d0d0d0;
+        }
+
+        button.active {
+            background-color: #0066cc;
+            color: #ffffff;
+            border-color: #0066cc;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        .mode-select {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e5e5e5;
+            background-color: #ffffff;
+            color: #333;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.selected {
+            background-color: #0066cc;
+            color: #ffffff;
+            border-color: #0066cc;
+        }
+
+        svg {
+            width: 100%;
+            min-height: 400px;
+            display: block;
+        }
+
+        .step-info {
+            background-color: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+
+        .step-info.highlight {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .note {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .comparison {
+            background-color: #f0f0f0;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .comparison-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .comparison-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .comparison-item:last-child {
+            border-bottom: none;
+        }
+
+        .good {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .bad {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .diagram-wrapper {
+                order: 2;
+            }
+
+            .controls {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SpawnActorDeferred 흐름 다이어그램</h1>
+
+        <div class="content">
+            <div class="diagram-wrapper">
+                <svg id="diagram" viewBox="0 0 600 700">
+                    <!-- 배경 -->
+                    <defs>
+                        <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fff3cd;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+                        </filter>
+                    </defs>
+
+                    <!-- 타이틀 -->
+                    <text x="300" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+                        <tspan id="diagram-title">Deferred 스폰 방식</tspan>
+                    </text>
+
+                    <!-- Step 1: SpawnActor -->
+                    <g id="step1" class="step">
+                        <rect x="50" y="60" width="500" height="70" fill="#ffffff" stroke="#e5e5e5" stroke-width="2" rx="8"/>
+                        <circle cx="75" cy="95" r="12" fill="#0066cc" stroke="none"/>
+                        <text x="95" y="85" font-size="13" font-weight="600" fill="#333">Step 1: SpawnActor 호출</text>
+                        <text x="95" y="105" font-size="12" fill="#666">bDeferConstruction = true</text>
+                        <text x="95" y="120" font-size="11" fill="#999">→ 액터 생성, 초기화 보류</text>
+                    </g>
+
+                    <!-- 화살표 1 -->
+                    <line x1="300" y1="130" x2="300" y2="160" stroke="#cccccc" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Step 2: 데이터 주입 (강조) -->
+                    <g id="step2" class="step highlight">
+                        <rect x="50" y="160" width="500" height="100" fill="url(#highlightGrad)" stroke="#ffc107" stroke-width="3" rx="8" filter="url(#shadow)"/>
+                        <circle cx="75" cy="205" r="12" fill="#ffc107" stroke="none"/>
+                        <text x="95" y="195" font-size="13" font-weight="600" fill="#333">Step 2: 데이터 주입 (핵심!)</text>
+                        <text x="95" y="215" font-size="12" fill="#333">Actor->MonsterID = 1</text>
+                        <text x="95" y="232" font-size="12" fill="#333">Actor->MaxHP = 100</text>
+                        <text x="95" y="249" font-size="12" fill="#333">Actor->AttackPower = 25</text>
+                    </g>
+
+                    <!-- 화살표 2 -->
+                    <line x1="300" y1="260" x2="300" y2="290" stroke="#cccccc" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Step 3: FinishSpawning -->
+                    <g id="step3" class="step">
+                        <rect x="50" y="290" width="500" height="70" fill="#ffffff" stroke="#e5e5e5" stroke-width="2" rx="8"/>
+                        <circle cx="75" cy="325" r="12" fill="#28a745" stroke="none"/>
+                        <text x="95" y="315" font-size="13" font-weight="600" fill="#333">Step 3: FinishSpawning 호출</text>
+                        <text x="95" y="335" font-size="12" fill="#666">초기화 시작</text>
+                        <text x="95" y="350" font-size="11" fill="#999">→ 이미 데이터 주입됨 (안전!)</text>
+                    </g>
+
+                    <!-- 화살표 3 -->
+                    <line x1="300" y1="360" x2="300" y2="390" stroke="#cccccc" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Step 4: PostInitializeComponents -->
+                    <g id="step4" class="step">
+                        <rect x="50" y="390" width="500" height="70" fill="#ffffff" stroke="#e5e5e5" stroke-width="2" rx="8"/>
+                        <circle cx="75" cy="425" r="12" fill="#17a2b8" stroke="none"/>
+                        <text x="95" y="415" font-size="13" font-weight="600" fill="#333">Step 4: PostInitializeComponents</text>
+                        <text x="95" y="435" font-size="12" fill="#666">컴포넌트 초기화</text>
+                        <text x="95" y="450" font-size="11" fill="#999">→ 데이터 기반 셋업 가능</text>
+                    </g>
+
+                    <!-- 화살표 4 -->
+                    <line x1="300" y1="460" x2="300" y2="490" stroke="#cccccc" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Step 5: BeginPlay -->
+                    <g id="step5" class="step">
+                        <rect x="50" y="490" width="500" height="70" fill="#ffffff" stroke="#e5e5e5" stroke-width="2" rx="8"/>
+                        <circle cx="75" cy="525" r="12" fill="#6f42c1" stroke="none"/>
+                        <text x="95" y="515" font-size="13" font-weight="600" fill="#333">Step 5: BeginPlay</text>
+                        <text x="95" y="535" font-size="12" fill="#666">게임 시작 로직</text>
+                        <text x="95" y="550" font-size="11" fill="#999">→ 모든 데이터 준비 완료</text>
+                    </g>
+
+                    <!-- 정상 경로 표시 -->
+                    <text x="570" y="625" font-size="11" fill="#999" text-anchor="end">정상 경로</text>
+
+                    <!-- 화살표 정의 -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <polygon points="0 0, 10 5, 0 10" fill="#cccccc"/>
+                        </marker>
+                    </defs>
+                </svg>
+
+                <div class="step-info" id="stepInfo">
+                    <div class="step-title">Step 1을 클릭하세요</div>
+                    <p>흐름을 따라 각 단계를 살펴보세요.</p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-label">시뮬레이션 모드</div>
+                    <div class="mode-select">
+                        <button class="mode-btn selected" onclick="setMode('deferred')">Deferred</button>
+                        <button class="mode-btn" onclick="setMode('normal')">일반 Spawn</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">단계별 진행</div>
+                    <div class="button-group">
+                        <button onclick="previousStep()">← 이전</button>
+                        <button onclick="nextStep()">다음 →</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">자동 진행</div>
+                    <button id="playBtn" onclick="toggleAutoPlay()" style="width: 100%;">재생</button>
+                </div>
+
+                <div class="control-group">
+                    <button onclick="resetDiagram()" style="width: 100%; border-color: #e5e5e5;">초기화</button>
+                </div>
+
+                <div class="note" id="modeNote">
+                    <strong>Deferred 방식:</strong><br/>
+                    데이터 주입 후 초기화하므로 안전하고 예측 가능합니다.
+                </div>
+
+                <div class="comparison" id="comparison" style="display: none;">
+                    <div class="comparison-title">일반 Spawn과의 비교</div>
+                    <div class="comparison-item">
+                        <span class="good">✓ Deferred:</span> 데이터 먼저, 초기화 나중
+                    </div>
+                    <div class="comparison-item">
+                        <span class="bad">✗ 일반 Spawn:</span> 초기화 먼저, 데이터 나중
+                    </div>
+                    <div class="comparison-item">
+                        → BeginPlay에서 데이터가 비어있을 수 있음!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let autoPlayActive = false;
+        let autoPlayInterval = null;
+        let currentMode = 'deferred';
+
+        const steps = [
+            {
+                step: 0,
+                title: '시작',
+                description: 'SpawnActorDeferred 흐름을 살펴봅시다.\n\n우측의 "다음 →" 버튼을 클릭하여 진행하세요.',
+                highlight: null
+            },
+            {
+                step: 1,
+                title: 'Step 1: SpawnActor 호출',
+                description: '<strong>SpawnActor 함수 호출</strong>\n\nbDeferConstruction = true 플래그로 호출하면:\n• 액터 객체가 생성됨\n• 하지만 PostInitializeComponents와 BeginPlay는 호출되지 않음\n• 초기화를 미루는 상태 (Deferred)',
+                highlight: 'step1'
+            },
+            {
+                step: 2,
+                title: 'Step 2: 데이터 주입 (핵심!)',
+                description: '<strong>액터에 데이터를 설정하는 구간</strong>\n\n이 시점에서 MonsterID, MaxHP, AttackPower 등 필요한 모든 데이터를 주입:\n\nActor->MonsterID = 1;\nActor->MaxHP = 100;\nActor->AttackPower = 25;\n\n이것이 Deferred 방식의 핵심 장점입니다!',
+                highlight: 'step2'
+            },
+            {
+                step: 3,
+                title: 'Step 3: FinishSpawning 호출',
+                description: '<strong>초기화 시작 신호</strong>\n\nFinishSpawning()을 호출하면:\n• PostInitializeComponents 실행\n• BeginPlay 스케줄\n\n이 시점에서 액터의 모든 데이터가 이미 채워져 있습니다. 안전합니다!',
+                highlight: 'step3'
+            },
+            {
+                step: 4,
+                title: 'Step 4: PostInitializeComponents',
+                description: '<strong>컴포넌트 초기화 단계</strong>\n\n액터의 모든 컴포넌트가 초기화됩니다:\n• MaxHP 값을 기반으로 체력 바 UI 셋업\n• AttackPower를 기반으로 공격 범위 설정\n\n데이터가 이미 있으므로 정상 동작합니다.',
+                highlight: 'step4'
+            },
+            {
+                step: 5,
+                title: 'Step 5: BeginPlay',
+                description: '<strong>게임 로직 시작</strong>\n\nBeginPlay()가 호출되면:\n• 모든 데이터가 완벽하게 초기화됨\n• 몬스터가 정상 작동 가능\n• MonsterID = 1, MaxHP = 100, AttackPower = 25\n\n완성된 액터로서의 모든 준비가 끝났습니다!',
+                highlight: 'step5'
+            }
+        ];
+
+        const normalModeSteps = [
+            {
+                step: 0,
+                title: '일반 Spawn 방식의 문제점',
+                description: '일반적인 SpawnActor 사용 시의 문제를 살펴봅시다.',
+                highlight: null
+            },
+            {
+                step: 1,
+                title: 'Step 1: SpawnActor 호출 (일반)',
+                description: '<strong>bDeferConstruction = false로 호출</strong>\n\nSpawnActor 함수가 호출되면:\n• 액터 객체 생성\n• 즉시 PostInitializeComponents 실행\n• 즉시 BeginPlay 호출\n\n초기화가 즉각 진행됩니다.',
+                highlight: 'step1'
+            },
+            {
+                step: 2,
+                title: 'Step 2: BeginPlay (데이터 없음!)',
+                description: '<strong>⚠️ 문제 발생!</strong>\n\nBeginPlay가 실행되는데:\n• MonsterID = 0 (초기화 안됨)\n• MaxHP = 0 (초기화 안됨)\n• AttackPower = 0 (초기화 안됨)\n\n이제 데이터를 주입해도 이미 늦었습니다!',
+                highlight: 'step5'
+            },
+            {
+                step: 3,
+                title: 'Step 3: 데이터 주입 (너무 늦음)',
+                description: '<strong>BeginPlay 이후의 데이터 설정</strong>\n\nActor->MonsterID = 1;\nActor->MaxHP = 100;  // 이미 초기화됨!\nActor->AttackPower = 25;\n\n이 시점에는 이미:\n• 체력 바가 0으로 표시됨\n• 공격 범위가 0으로 설정됨\n• 다시 셋업 함수를 호출해야 함 (중복!)\n\n비효율적이고 버그 유발',
+                highlight: 'step2'
+            },
+            {
+                step: 4,
+                title: '결론: Deferred 방식을 사용하세요!',
+                description: '<strong>일반 Spawn의 문제점:</strong>\n\n1. 초기화가 먼저 진행됨\n2. 데이터 주입이 뒤늦게 발생\n3. 불일치 상태 발생\n4. 별도의 셋업 함수 호출 필요\n5. 버그와 혼동 유발\n\n→ SpawnActorDeferred를 사용하면 이 모든 문제를 해결할 수 있습니다!',
+                highlight: null
+            }
+        ];
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            currentStep = 0;
+            stopAutoPlay();
+            updateDiagram();
+
+            const note = document.getElementById('modeNote');
+            const comparison = document.getElementById('comparison');
+
+            if (mode === 'deferred') {
+                note.innerHTML = '<strong>Deferred 방식:</strong><br/>데이터 주입 후 초기화하므로 안전하고 예측 가능합니다.';
+                comparison.style.display = 'none';
+            } else {
+                note.innerHTML = '<strong>일반 Spawn 방식:</strong><br/>초기화 후 데이터 주입이므로 문제가 발생할 수 있습니다.';
+                comparison.style.display = 'block';
+            }
+        }
+
+        function updateDiagram() {
+            const stepList = currentMode === 'deferred' ? steps : normalModeSteps;
+            const info = stepList[currentStep];
+
+            // 타이틀 업데이트
+            const title = document.getElementById('diagram-title');
+            if (currentMode === 'deferred') {
+                title.textContent = 'Deferred 스폰 방식';
+            } else {
+                title.textContent = '일반 스폰 방식 (문제점)';
+            }
+
+            // 하이라이트 제거
+            document.querySelectorAll('.step').forEach(step => {
+                step.style.opacity = '1';
+                const rect = step.querySelector('rect');
+                if (rect) {
+                    rect.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))';
+                }
+            });
+
+            // 새로운 하이라이트 추가
+            if (info.highlight) {
+                const element = document.getElementById(info.highlight);
+                if (element) {
+                    element.style.opacity = '1';
+                    const rect = element.querySelector('rect');
+                    if (rect) {
+                        rect.style.filter = 'drop-shadow(0 2px 8px rgba(0,102,204,0.3))';
+                    }
+                }
+            }
+
+            // 정보 업데이트
+            const stepInfo = document.getElementById('stepInfo');
+            stepInfo.innerHTML = `
+                <div class="step-title">${info.title}</div>
+                <p>${info.description}</p>
+            `;
+
+            if (info.highlight === 'step2') {
+                stepInfo.classList.add('highlight');
+            } else {
+                stepInfo.classList.remove('highlight');
+            }
+        }
+
+        function nextStep() {
+            const stepList = currentMode === 'deferred' ? steps : normalModeSteps;
+            if (currentStep < stepList.length - 1) {
+                currentStep++;
+                updateDiagram();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateDiagram();
+            }
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayActive) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        function startAutoPlay() {
+            autoPlayActive = true;
+            const playBtn = document.getElementById('playBtn');
+            playBtn.textContent = '정지';
+            playBtn.classList.add('active');
+
+            autoPlayInterval = setInterval(() => {
+                const stepList = currentMode === 'deferred' ? steps : normalModeSteps;
+                if (currentStep < stepList.length - 1) {
+                    nextStep();
+                } else {
+                    stopAutoPlay();
+                }
+            }, 3000);
+        }
+
+        function stopAutoPlay() {
+            autoPlayActive = false;
+            const playBtn = document.getElementById('playBtn');
+            playBtn.textContent = '재생';
+            playBtn.classList.remove('active');
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+            }
+        }
+
+        function resetDiagram() {
+            stopAutoPlay();
+            currentStep = 0;
+            updateDiagram();
+        }
+
+        // 초기화
+        updateDiagram();
+    </script>
+</body>
+</html>
