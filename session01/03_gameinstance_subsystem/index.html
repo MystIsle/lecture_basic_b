@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameInstance와 서브시스템 스코프</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 14px 20px 10px;
+        }
+        h1 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+        .subtitle { font-size: 11px; color: #999; margin-bottom: 14px; }
+
+        /* GameInstance 바깥 박스 */
+        .gi-box {
+            border: 2px solid #be185d;
+            border-radius: 12px;
+            background: #fdf2f8;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .gi-box:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+        .gi-box.selected { box-shadow: 0 0 0 2px #fbcfe8; }
+
+        .scope-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .scope-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.82rem; color: #fff; font-weight: 700; flex-shrink: 0;
+        }
+        .scope-title { font-weight: 700; font-size: 0.88rem; }
+        .scope-lifetime {
+            font-size: 0.68rem; color: #999;
+            margin-left: auto; padding: 2px 8px;
+            background: rgba(255,255,255,0.7); border-radius: 6px; border: 1px solid #e5e5e5;
+            flex-shrink: 0;
+        }
+
+        .scope-subsystem {
+            font-size: 0.75rem; color: #666;
+            padding: 5px 10px; background: rgba(255,255,255,0.7);
+            border: 1px dashed #ddd; border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .scope-subsystem .sub-name { font-weight: 600; }
+        .scope-subsystem .sub-desc { color: #999; margin-left: 5px; }
+
+        /* World와 LocalPlayer 나란히 */
+        .inner-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .inner-box {
+            flex: 1;
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .inner-box:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+        .inner-box.selected { box-shadow: 0 0 0 2px rgba(0,0,0,0.08); }
+
+        .inner-box .scope-header { margin-bottom: 6px; }
+        .inner-box .scope-subsystem { margin-bottom: 0; }
+
+        .box-world { border-color: #2563eb; background: #eff6ff; }
+        .box-world .scope-title { color: #2563eb; }
+        .box-world .scope-icon { background: #2563eb; }
+        .box-world.selected { box-shadow: 0 0 0 2px #bfdbfe; }
+
+        .box-player { border-color: #7c3aed; background: #f5f3ff; }
+        .box-player .scope-title { color: #7c3aed; }
+        .box-player .scope-icon { background: #7c3aed; }
+        .box-player.selected { box-shadow: 0 0 0 2px #ddd6fe; }
+
+        /* 클릭 시 상세 */
+        .detail-inline {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: #555;
+            line-height: 1.5;
+            display: none;
+        }
+        .detail-inline.show { display: block; animation: fadeIn 0.2s ease; }
+        .detail-inline .detail-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 3px; }
+        .detail-inline .key-point {
+            margin-top: 5px; padding: 5px 8px;
+            background: rgba(255,255,255,0.6);
+            border-left: 2px solid currentColor;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.72rem; color: #333;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 구분선 */
+        .divider { border: none; border-top: 1px solid #eee; margin: 14px 0; }
+
+        /* 수명 바 */
+        .lifetime-section h2 { font-size: 0.82rem; color: #222; margin-bottom: 8px; font-weight: 700; }
+        .bar-track {
+            height: 22px; margin-bottom: 5px;
+            display: flex; align-items: center;
+        }
+        .bar-label {
+            width: 100px; font-size: 0.7rem; font-weight: 600;
+            text-align: right; padding-right: 10px; flex-shrink: 0;
+        }
+        .bar-bg {
+            flex: 1; height: 16px;
+            background: #f0f0f0; border-radius: 8px;
+            position: relative; overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute; top: 0; height: 100%;
+            border-radius: 8px;
+        }
+        .bar-markers {
+            display: flex; justify-content: space-between;
+            padding-left: 100px; padding-right: 4px;
+            font-size: 0.6rem; color: #bbb; margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GameInstance와 서브시스템 스코프</h1>
+    <p class="subtitle">각 영역을 클릭하면 상세 설명을 볼 수 있습니다</p>
+
+    <!-- GameInstance 바깥 박스 -->
+    <div class="gi-box" id="ring-instance" onclick="selectScope(event, 'instance')">
+        <div class="scope-header">
+            <div class="scope-icon" style="background:#be185d;">GI</div>
+            <div class="scope-title" style="color:#be185d;">GameInstance</div>
+            <div class="scope-lifetime">게임 실행 ~ 종료</div>
+        </div>
+        <div class="scope-subsystem">
+            <span class="sub-name">GameInstanceSubsystem</span>
+            <span class="sub-desc">: 세이브, 설정</span>
+        </div>
+
+        <!-- World와 LocalPlayer 나란히 -->
+        <div class="inner-row">
+            <div class="inner-box box-world" id="ring-world" onclick="selectScope(event, 'world')">
+                <div class="scope-header">
+                    <div class="scope-icon" style="background:#2563eb;">W</div>
+                    <div class="scope-title" style="color:#2563eb;">World</div>
+                    <div class="scope-lifetime">레벨 열림~닫힘</div>
+                </div>
+                <div class="scope-subsystem">
+                    <span class="sub-name">WorldSubsystem</span>
+                    <span class="sub-desc">: 웨이브, 날씨</span>
+                </div>
+            </div>
+
+            <div class="inner-box box-player" id="ring-player" onclick="selectScope(event, 'player')">
+                <div class="scope-header">
+                    <div class="scope-icon" style="background:#7c3aed;">LP</div>
+                    <div class="scope-title" style="color:#7c3aed;">LocalPlayer</div>
+                    <div class="scope-lifetime">접속~퇴장</div>
+                </div>
+                <div class="scope-subsystem">
+                    <span class="sub-name">LocalPlayerSubsystem</span>
+                    <span class="sub-desc">: 입력, 개인 UI</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-inline" id="detailInline"></div>
+
+    <hr class="divider">
+
+    <!-- 수명 바 -->
+    <div class="lifetime-section">
+        <h2>수명 비교</h2>
+        <div class="bar-track">
+            <div class="bar-label" style="color:#be185d;">GameInstance</div>
+            <div class="bar-bg">
+                <div class="bar-fill" style="background:#be185d; left:0; width:100%;"></div>
+            </div>
+        </div>
+        <div class="bar-track">
+            <div class="bar-label" style="color:#7c3aed;">LocalPlayer</div>
+            <div class="bar-bg">
+                <div class="bar-fill" style="background:#7c3aed; left:0; width:100%; opacity:0.7;"></div>
+            </div>
+        </div>
+        <div class="bar-track">
+            <div class="bar-label" style="color:#2563eb;">World</div>
+            <div class="bar-bg">
+                <div class="bar-fill" style="background:#2563eb; left:5%; width:25%;"></div>
+                <div class="bar-fill" style="background:#2563eb; left:40%; width:25%;"></div>
+                <div class="bar-fill" style="background:#2563eb; left:75%; width:20%;"></div>
+            </div>
+        </div>
+        <div class="bar-markers">
+            <span>시작</span>
+            <span>타이틀</span>
+            <span>전환</span>
+            <span>인게임</span>
+            <span>종료</span>
+        </div>
+    </div>
+
+    <script>
+        const scopeData = {
+            instance: {
+                title: 'GameInstance : 게임 앱 자체',
+                body: '게임이 실행되는 동안 쭉 살아있습니다. 레벨이 바뀌어도 유지됩니다.',
+                keyPoint: 'PIE 창마다 독립된 GameInstance가 생깁니다. 전역 변수는 섞이지만 GameInstance는 안전합니다.',
+                color: '#be185d', bg: '#fdf2f8'
+            },
+            world: {
+                title: 'World (Level) : 현재 레벨',
+                body: '레벨이 열리면 생기고, 닫히면 사라집니다. 레벨 종속 매니저용입니다.',
+                keyPoint: '레벨 전환 시 자동으로 정리됩니다. 수동 정리가 불필요합니다.',
+                color: '#2563eb', bg: '#eff6ff'
+            },
+            player: {
+                title: 'LocalPlayer : 로컬 플레이어',
+                body: '싱글플레이에서는 GameInstance와 동일한 수명입니다. 멀티플레이에서 플레이어 접속/퇴장 시 생멸합니다.',
+                keyPoint: '멀티플레이에서 각 플레이어마다 독립된 서브시스템이 생깁니다. World와 무관하게 유지됩니다.',
+                color: '#7c3aed', bg: '#f5f3ff'
+            }
+        };
+
+        let selectedScope = null;
+
+        function selectScope(event, id) {
+            event.stopPropagation();
+            const detail = document.getElementById('detailInline');
+
+            if (selectedScope === id) {
+                document.querySelectorAll('.gi-box, .inner-box').forEach(r => r.classList.remove('selected'));
+                detail.classList.remove('show');
+                selectedScope = null;
+                return;
+            }
+
+            selectedScope = id;
+            document.querySelectorAll('.gi-box, .inner-box').forEach(r => r.classList.remove('selected'));
+            document.getElementById(`ring-${id}`).classList.add('selected');
+
+            const d = scopeData[id];
+            detail.style.background = d.bg;
+            detail.style.color = d.color;
+            detail.innerHTML = `
+                <div class="detail-title">${d.title}</div>
+                <div style="color:#555">${d.body}</div>
+                <div class="key-point" style="border-left-color:${d.color}">💡 ${d.keyPoint}</div>
+            `;
+            detail.classList.add('show');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.gi-box') && !e.target.closest('.inner-box')) {
+                document.querySelectorAll('.gi-box, .inner-box').forEach(r => r.classList.remove('selected'));
+                document.getElementById('detailInline').classList.remove('show');
+                selectedScope = null;
+            }
+        });
+    </script>
+</body>
+</html>

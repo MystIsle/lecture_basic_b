@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게임플레이 프레임워크 관계도</title>
+    <link rel="stylesheet" href="../../shared/css/common.css">
+    <style>
+        .diagram-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            min-height: 520px;
+        }
+
+        .fw-node {
+            position: absolute;
+            background: #fff;
+            border: 2px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 14px 18px;
+            min-width: 160px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+            z-index: 2;
+        }
+        .fw-node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        .fw-node.selected {
+            z-index: 3;
+        }
+        .fw-node .name { font-weight: 700; font-size: 0.9rem; }
+        .fw-node .role { font-size: 0.78rem; color: #999; margin-top: 2px; }
+
+        /* 색상별 */
+        .fw-gamemode { border-color: #dc2626; }
+        .fw-gamemode.selected { box-shadow: 0 0 0 3px #fecaca, 0 6px 20px rgba(0,0,0,0.08); }
+        .fw-gamemode .name { color: #dc2626; }
+
+        .fw-gamestate { border-color: #d97706; }
+        .fw-gamestate.selected { box-shadow: 0 0 0 3px #fed7aa, 0 6px 20px rgba(0,0,0,0.08); }
+        .fw-gamestate .name { color: #d97706; }
+
+        .fw-controller { border-color: #2563eb; }
+        .fw-controller.selected { box-shadow: 0 0 0 3px #bfdbfe, 0 6px 20px rgba(0,0,0,0.08); }
+        .fw-controller .name { color: #2563eb; }
+
+        .fw-playerstate { border-color: #7c3aed; }
+        .fw-playerstate.selected { box-shadow: 0 0 0 3px #ddd6fe, 0 6px 20px rgba(0,0,0,0.08); }
+        .fw-playerstate .name { color: #7c3aed; }
+
+        .fw-pawn { border-color: #0d9488; }
+        .fw-pawn.selected { box-shadow: 0 0 0 3px #99f6e4, 0 6px 20px rgba(0,0,0,0.08); }
+        .fw-pawn .name { color: #0d9488; }
+
+        /* SVG 연결선 */
+        .connections {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .conn-line {
+            stroke: #ddd;
+            stroke-width: 2;
+            fill: none;
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+        .conn-line.active {
+            stroke-width: 2.5;
+        }
+        .conn-label {
+            font-size: 11px;
+            fill: #bbb;
+            text-anchor: middle;
+            transition: fill 0.3s;
+        }
+        .conn-label.active { fill: #666; font-weight: 600; }
+
+        /* 화살표 마커 */
+        .arrow-marker { fill: #ddd; transition: fill 0.3s; }
+        .arrow-marker.active { fill: currentColor; }
+
+        /* 디테일 패널 */
+        .detail-panel {
+            margin-top: 16px;
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px 24px;
+            min-height: 100px;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 800px;
+        }
+        .detail-panel .detail-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .detail-panel .detail-body {
+            font-size: 0.88rem;
+            color: #555;
+            line-height: 1.7;
+        }
+        .detail-panel .detail-body .insight {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #f0fdfa;
+            border-left: 3px solid #0d9488;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.84rem;
+            color: #333;
+        }
+        .detail-panel .detail-hint {
+            font-size: 0.82rem;
+            color: #bbb;
+            text-align: center;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>게임플레이 프레임워크 관계도</h1>
+    <p class="subtitle">각 클래스를 클릭하면 상세 설명을 볼 수 있습니다</p>
+
+    <div class="diagram-container">
+        <div class="diagram-wrap" id="diagramWrap">
+            <svg class="connections" id="connSvg">
+                <defs>
+                    <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#ddd"/>
+                    </marker>
+                </defs>
+            </svg>
+        </div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-hint">위 다이어그램에서 클래스를 클릭해보세요</div>
+    </div>
+
+    <script>
+        // 레이아웃: GameMode 최상단 중앙, 아래로 퍼지는 트리 구조
+        const nodes = [
+            {
+                id: 'gamemode',
+                name: 'GameMode',
+                role: '심판 — 규칙 판단',
+                cls: 'fw-gamemode',
+                x: 300, y: 10,
+                detail: {
+                    title: 'GameMode — 이 판의 규칙을 가진 심판',
+                    body: '게임 규칙을 판단하는 클래스입니다. 승리/패배 조건, 리스폰 정책, 게임 시작/종료 로직이 여기에 들어갑니다. <strong>서버에만 존재</strong>하며, 이 게임 판 전체를 관장합니다.',
+                    insight: '같은 맵에서 "데스매치 모드"와 "점령 모드"를 만들고 싶다면? GameMode만 갈아끼우면 됩니다. 맵, 캐릭터 그대로, 규칙만 변경.'
+                }
+            },
+            {
+                id: 'gamestate',
+                name: 'GameState',
+                role: '전광판 — 현재 상태 데이터',
+                cls: 'fw-gamestate',
+                x: 560, y: 120,
+                detail: {
+                    title: 'GameState — 전광판',
+                    body: '현재 점수, 경과 시간, 남은 적 수 같은 상태 데이터를 보관합니다. GameMode(심판)가 판단한 결과를 여기에 기록하는 구조입니다.',
+                    insight: '판단(GameMode)과 표시(GameState)를 분리하면, 규칙을 바꿔도 상태 표시가 깨지지 않습니다.'
+                }
+            },
+            {
+                id: 'controller',
+                name: 'PlayerController',
+                role: '플레이어의 의지 — 입력 처리',
+                cls: 'fw-controller',
+                x: 80, y: 200,
+                detail: {
+                    title: 'PlayerController — 플레이어의 의지',
+                    body: '입력을 받아서 Pawn에 전달하는 클래스입니다. 캐릭터가 죽어도 Controller는 살아있어서, 리스폰 대기 화면에서도 UI 조작이 가능합니다.',
+                    insight: 'FPS에서 차량 탑승? Controller가 캐릭터 Pawn에서 빠져나와 차량 Pawn에 빙의. 조종 주체는 같고 몸체만 교체.'
+                }
+            },
+            {
+                id: 'playerstate',
+                name: 'PlayerState',
+                role: '개인 성적표 — 플레이어 데이터',
+                cls: 'fw-playerstate',
+                x: 460, y: 300,
+                detail: {
+                    title: 'PlayerState — 개인 성적표',
+                    body: '점수, 이름, 킬/데스 같은 개별 플레이어 데이터를 모아두는 곳입니다. <strong>PlayerController가 소유</strong>하며, Controller가 존재하는 한 유지됩니다. 리더보드, 결과 화면에 바로 활용할 수 있습니다.',
+                    insight: '세이브/로드를 만든다면? PlayerState에 데이터가 모여있으면 저장 대상이 명확해집니다.'
+                }
+            },
+            {
+                id: 'pawn',
+                name: 'Character (Pawn)',
+                role: '월드의 몸체 — 물리·애니메이션',
+                cls: 'fw-pawn',
+                x: 140, y: 410,
+                detail: {
+                    title: 'Pawn / Character — 월드에 존재하는 몸체',
+                    body: '월드에 배치되고, 물리 영향을 받고, 눈에 보이는 존재입니다. Character = Pawn + CharacterMovementComponent. 걸어다니면 Character, 차량/드론은 Pawn에서 직접 만듭니다.',
+                    insight: '이동/점프/달리기는 CharacterMovementComponent가 처리합니다. 걸어다니는 캐릭터가 아니라면(차량, 드론) Pawn을 직접 사용하면 됩니다.'
+                }
+            },
+        ];
+
+        // 연결: 위→아래 방향 강조, GameMode에서 뻗어나가는 구조
+        const connections = [
+            { from: 'gamemode', to: 'gamestate', label: '상태 관리', color: '#d97706' },
+            { from: 'gamemode', to: 'controller', label: '생성 / 관리', color: '#dc2626' },
+            { from: 'controller', to: 'pawn', label: '빙의 (Possess)', color: '#2563eb' },
+            { from: 'controller', to: 'playerstate', label: '소유', color: '#7c3aed' },
+        ];
+
+        const wrap = document.getElementById('diagramWrap');
+        const svg = document.getElementById('connSvg');
+        let selectedId = null;
+
+        // Render nodes
+        nodes.forEach((n, i) => {
+            const el = document.createElement('div');
+            el.className = `fw-node ${n.cls}`;
+            el.id = `node-${n.id}`;
+            el.style.left = n.x + 'px';
+            el.style.top = n.y + 'px';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(12px)';
+            el.innerHTML = `
+                <div class="name">${n.name}</div>
+                <div class="role">${n.role}</div>
+            `;
+            el.addEventListener('click', () => selectNode(n.id));
+            wrap.appendChild(el);
+
+            setTimeout(() => {
+                el.style.transition = 'all 0.4s ease';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 100 * i);
+        });
+
+        // Draw connections after layout
+        setTimeout(drawConnections, 600);
+        window.addEventListener('resize', drawConnections);
+
+        function getEdgePoint(el, targetX, targetY) {
+            const cx = el.offsetLeft + el.offsetWidth / 2;
+            const cy = el.offsetTop + el.offsetHeight / 2;
+            const hw = el.offsetWidth / 2;
+            const hh = el.offsetHeight / 2;
+
+            const dx = targetX - cx;
+            const dy = targetY - cy;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+
+            // Determine which edge to exit from
+            if (absDx / hw > absDy / hh) {
+                // Left or right edge
+                const sign = dx > 0 ? 1 : -1;
+                return { x: cx + hw * sign, y: cy + dy * (hw / absDx) };
+            } else {
+                // Top or bottom edge
+                const sign = dy > 0 ? 1 : -1;
+                return { x: cx + dx * (hh / absDy), y: cy + hh * sign };
+            }
+        }
+
+        function drawConnections() {
+            // Keep defs
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            svg.appendChild(defs);
+
+            connections.forEach(c => {
+                const fromEl = document.getElementById(`node-${c.from}`);
+                const toEl = document.getElementById(`node-${c.to}`);
+                if (!fromEl || !toEl) return;
+
+                const fcx = fromEl.offsetLeft + fromEl.offsetWidth / 2;
+                const fcy = fromEl.offsetTop + fromEl.offsetHeight / 2;
+                const tcx = toEl.offsetLeft + toEl.offsetWidth / 2;
+                const tcy = toEl.offsetTop + toEl.offsetHeight / 2;
+
+                const fp = getEdgePoint(fromEl, tcx, tcy);
+                const tp = getEdgePoint(toEl, fcx, fcy);
+
+                const isActive = selectedId && (c.from === selectedId || c.to === selectedId);
+
+                // Arrow marker for this connection
+                const markerId = `arrow-${c.from}-${c.to}`;
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', markerId);
+                marker.setAttribute('markerWidth', '8');
+                marker.setAttribute('markerHeight', '6');
+                marker.setAttribute('refX', '8');
+                marker.setAttribute('refY', '3');
+                marker.setAttribute('orient', 'auto');
+                const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                poly.setAttribute('points', '0 0, 8 3, 0 6');
+                poly.setAttribute('fill', isActive ? c.color : '#ddd');
+                marker.appendChild(poly);
+                defs.appendChild(marker);
+
+                // Line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', fp.x);
+                line.setAttribute('y1', fp.y);
+                line.setAttribute('x2', tp.x);
+                line.setAttribute('y2', tp.y);
+                line.setAttribute('class', 'conn-line' + (isActive ? ' active' : ''));
+                line.style.stroke = isActive ? c.color : '#ddd';
+                line.setAttribute('marker-end', `url(#${markerId})`);
+                svg.appendChild(line);
+
+                // Label
+                const lx = (fp.x + tp.x) / 2;
+                const ly = (fp.y + tp.y) / 2 - 8;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', lx);
+                text.setAttribute('y', ly);
+                text.setAttribute('class', 'conn-label' + (isActive ? ' active' : ''));
+                if (isActive) text.style.fill = c.color;
+                text.textContent = c.label;
+                svg.appendChild(text);
+            });
+        }
+
+        function selectNode(id) {
+            selectedId = selectedId === id ? null : id;
+
+            nodes.forEach(n => {
+                const el = document.getElementById(`node-${n.id}`);
+                el.classList.toggle('selected', n.id === selectedId);
+            });
+
+            drawConnections();
+
+            const panel = document.getElementById('detailPanel');
+            if (!selectedId) {
+                panel.innerHTML = '<div class="detail-hint">위 다이어그램에서 클래스를 클릭해보세요</div>';
+                return;
+            }
+
+            const node = nodes.find(n => n.id === selectedId);
+            panel.innerHTML = `
+                <div class="detail-title" style="color: ${getNodeColor(selectedId)}">${node.detail.title}</div>
+                <div class="detail-body">
+                    ${node.detail.body}
+                    <div class="insight">💡 ${node.detail.insight}</div>
+                </div>
+            `;
+        }
+
+        function getNodeColor(id) {
+            const colors = {
+                gamemode: '#dc2626', gamestate: '#d97706',
+                controller: '#2563eb', playerstate: '#7c3aed', pawn: '#0d9488'
+            };
+            return colors[id] || '#333';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>슈퍼클래스 → 역할 분리</title>
+    <link rel="stylesheet" href="../../shared/css/common.css">
+    <style>
+        .stage-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .stage-btn {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+        }
+        .stage-btn.active {
+            background: #0d9488;
+            color: #fff;
+            border-color: #0d9488;
+        }
+        .stage-btn:hover:not(.active) {
+            border-color: #0d9488;
+            color: #0d9488;
+        }
+
+        .class-area {
+            position: relative;
+            width: 100%;
+            min-height: 380px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 20px 0;
+            transition: all 0.5s ease;
+        }
+
+        .class-box {
+            background: #fff;
+            border: 2px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px 20px;
+            min-width: 180px;
+            transition: all 0.5s ease, opacity 0.4s ease;
+            position: relative;
+        }
+        .class-box .class-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+        }
+        .class-box .methods {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.7;
+        }
+        .class-box .methods .method {
+            padding: 2px 0;
+            transition: all 0.3s;
+        }
+        .class-box .methods .method.highlight {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .class-box .methods .method.moving {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        /* 갓 클래스 강조 */
+        .god-class {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 1px #fecaca;
+        }
+        .god-class .class-name {
+            color: #dc2626;
+        }
+
+        /* 분리된 클래스 색상 */
+        .role-gamemode { border-color: #dc2626; }
+        .role-gamemode .class-name { color: #dc2626; }
+        .role-controller { border-color: #2563eb; }
+        .role-controller .class-name { color: #2563eb; }
+        .role-character { border-color: #0d9488; }
+        .role-character .class-name { color: #0d9488; }
+        .role-gamestate { border-color: #d97706; }
+        .role-gamestate .class-name { color: #d97706; }
+        .role-playerstate { border-color: #7c3aed; }
+        .role-playerstate .class-name { color: #7c3aed; }
+
+        .line-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .line-count.small {
+            background: #16a34a;
+        }
+
+        .caption {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 12px;
+            min-height: 40px;
+            line-height: 1.6;
+            transition: opacity 0.3s;
+        }
+        .caption strong { color: #333; }
+        .caption .red { color: #dc2626; }
+        .caption .green { color: #16a34a; }
+
+        .arrow-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .arrow-area.visible { opacity: 1; }
+        .arrow-area svg { overflow: visible; }
+    </style>
+</head>
+<body>
+    <h1>슈퍼클래스에서 역할 분리로</h1>
+    <p class="subtitle">단계를 클릭해서 진행해보세요</p>
+
+    <div class="stage-nav">
+        <button class="stage-btn active" onclick="goStage(0)">1. 슈퍼클래스</button>
+        <button class="stage-btn" onclick="goStage(1)">2. 문제 인식</button>
+        <button class="stage-btn" onclick="goStage(2)">3. 역할 분리</button>
+        <button class="stage-btn" onclick="goStage(3)">4. 프레임워크</button>
+    </div>
+
+    <div class="diagram-container">
+        <div class="arrow-area" id="arrowArea">
+            <svg width="60" height="40">
+                <path d="M10 20 L45 20" stroke="#0d9488" stroke-width="2" fill="none"/>
+                <polygon points="45,14 55,20 45,26" fill="#0d9488"/>
+            </svg>
+        </div>
+        <div class="class-area" id="classArea"></div>
+        <div class="caption" id="caption"></div>
+    </div>
+
+    <script>
+        const stages = [
+            {
+                caption: '처음 게임을 만들면 <strong>클래스 하나에 모든 걸 구현</strong>하게 됩니다.',
+                boxes: [
+                    {
+                        name: 'APlayerCharacter',
+                        cls: 'god-class',
+                        lineCount: '3,000줄',
+                        lineSmall: false,
+                        methods: [
+                            { text: 'MoveForward()', group: 'input' },
+                            { text: 'MoveRight()', group: 'input' },
+                            { text: 'Jump()', group: 'input' },
+                            { text: 'BasicAttack()', group: 'input' },
+                            { text: 'CalculateScore()', group: 'rule' },
+                            { text: 'CheckGameOver()', group: 'rule' },
+                            { text: 'UpdateTimer()', group: 'rule' },
+                            { text: 'RespawnPlayer()', group: 'rule' },
+                            { text: 'UpdateHP()', group: 'state' },
+                            { text: 'AddKillCount()', group: 'state' },
+                            { text: 'SavePlayerData()', group: 'state' },
+                            { text: 'UpdateHUD()', group: 'state' },
+                        ]
+                    }
+                ],
+                arrow: false
+            },
+            {
+                caption: '<span class="red">2주 전에 짠 코드인데 "이거 왜 여기 있지?"</span> — 이동 코드가 어디 있는지도 못 찾습니다.',
+                boxes: [
+                    {
+                        name: 'APlayerCharacter',
+                        cls: 'god-class',
+                        lineCount: '3,000줄',
+                        lineSmall: false,
+                        methods: [
+                            { text: 'MoveForward()', group: 'input', highlight: true },
+                            { text: 'MoveRight()', group: 'input', highlight: true },
+                            { text: 'Jump()', group: 'input' },
+                            { text: 'BasicAttack()', group: 'input' },
+                            { text: 'CalculateScore()', group: 'rule', highlight: true },
+                            { text: 'CheckGameOver()', group: 'rule', highlight: true },
+                            { text: 'UpdateTimer()', group: 'rule' },
+                            { text: 'RespawnPlayer()', group: 'rule' },
+                            { text: 'UpdateHP()', group: 'state' },
+                            { text: 'AddKillCount()', group: 'state' },
+                            { text: 'SavePlayerData()', group: 'state' },
+                            { text: 'UpdateHUD()', group: 'state' },
+                        ]
+                    }
+                ],
+                arrow: false
+            },
+            {
+                caption: '역할별로 나누면 <span class="green">바꾸고 싶은 곳만 찾아가면 됩니다.</span>',
+                boxes: [
+                    {
+                        name: 'GameMode',
+                        cls: 'role-gamemode',
+                        lineCount: '~200줄',
+                        lineSmall: true,
+                        methods: [
+                            { text: 'CalculateScore()' },
+                            { text: 'CheckGameOver()' },
+                            { text: 'UpdateTimer()' },
+                            { text: 'RespawnPlayer()' },
+                        ]
+                    },
+                    {
+                        name: 'PlayerController',
+                        cls: 'role-controller',
+                        lineCount: '~150줄',
+                        lineSmall: true,
+                        methods: [
+                            { text: 'MoveForward()' },
+                            { text: 'MoveRight()' },
+                            { text: 'Jump()' },
+                            { text: 'BasicAttack()' },
+                        ]
+                    },
+                    {
+                        name: 'Character',
+                        cls: 'role-character',
+                        lineCount: '~300줄',
+                        lineSmall: true,
+                        methods: [
+                            { text: 'UpdateHP()' },
+                            { text: 'PlayAnimation()' },
+                            { text: 'ApplyDamage()' },
+                        ]
+                    },
+                ],
+                arrow: true
+            },
+            {
+                caption: '언리얼의 <strong>게임플레이 프레임워크</strong>는 이 역할 분리를 패턴으로 만들어둔 것입니다.',
+                boxes: [
+                    {
+                        name: 'AGameMode',
+                        cls: 'role-gamemode',
+                        lineCount: '심판',
+                        lineSmall: true,
+                        methods: [
+                            { text: '규칙 판단' },
+                            { text: '승리/패배 조건' },
+                            { text: '리스폰 정책' },
+                        ]
+                    },
+                    {
+                        name: 'AGameState',
+                        cls: 'role-gamestate',
+                        lineCount: '전광판',
+                        lineSmall: true,
+                        methods: [
+                            { text: '현재 점수' },
+                            { text: '경과 시간' },
+                            { text: '남은 적 수' },
+                        ]
+                    },
+                    {
+                        name: 'APlayerController',
+                        cls: 'role-controller',
+                        lineCount: '의지',
+                        lineSmall: true,
+                        methods: [
+                            { text: '입력 처리' },
+                            { text: 'Pawn에 빙의' },
+                            { text: 'UI 조작' },
+                        ]
+                    },
+                    {
+                        name: 'APlayerState',
+                        cls: 'role-playerstate',
+                        lineCount: '성적표',
+                        lineSmall: true,
+                        methods: [
+                            { text: '개인 점수' },
+                            { text: '킬/데스' },
+                            { text: '플레이어 이름' },
+                        ]
+                    },
+                    {
+                        name: 'ACharacter',
+                        cls: 'role-character',
+                        lineCount: '몸체',
+                        lineSmall: true,
+                        methods: [
+                            { text: '이동 (Movement)' },
+                            { text: '물리 충돌' },
+                            { text: '애니메이션' },
+                        ]
+                    },
+                ],
+                arrow: false
+            }
+        ];
+
+        let currentStage = 0;
+
+        function renderStage(idx) {
+            const stage = stages[idx];
+            const area = document.getElementById('classArea');
+            const caption = document.getElementById('caption');
+            const arrowArea = document.getElementById('arrowArea');
+
+            // Update nav buttons
+            document.querySelectorAll('.stage-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === idx);
+            });
+
+            // Arrow
+            arrowArea.classList.toggle('visible', stage.arrow);
+
+            // Build boxes
+            area.innerHTML = '';
+            stage.boxes.forEach((box, bi) => {
+                const el = document.createElement('div');
+                el.className = `class-box ${box.cls}`;
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(16px)';
+
+                let lineHtml = '';
+                if (box.lineCount) {
+                    lineHtml = `<span class="line-count${box.lineSmall ? ' small' : ''}">${box.lineCount}</span>`;
+                }
+
+                let methodsHtml = box.methods.map(m =>
+                    `<div class="method${m.highlight ? ' highlight' : ''}">${m.text}</div>`
+                ).join('');
+
+                el.innerHTML = `
+                    ${lineHtml}
+                    <div class="class-name">${box.name}</div>
+                    <div class="methods">${methodsHtml}</div>
+                `;
+                area.appendChild(el);
+
+                // Stagger animation
+                setTimeout(() => {
+                    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 80 * bi);
+            });
+
+            // Caption
+            caption.style.opacity = '0';
+            setTimeout(() => {
+                caption.innerHTML = stage.caption;
+                caption.style.opacity = '1';
+            }, 200);
+        }
+
+        function goStage(idx) {
+            currentStage = idx;
+            renderStage(idx);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStage < stages.length - 1) {
+                goStage(currentStage + 1);
+            } else if (e.key === 'ArrowLeft' && currentStage > 0) {
+                goStage(currentStage - 1);
+            }
+        });
+
+        renderStage(0);
+    </script>
+</body>
+</html>
