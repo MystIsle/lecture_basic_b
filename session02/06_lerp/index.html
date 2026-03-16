@@ -245,6 +245,38 @@
         }
 
         .footer strong { color: #333; }
+
+        /* Power Toggle */
+        .power-toggle {
+            display: flex;
+            gap: 4px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .pow-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .pow-btn:hover { color: #333; }
+
+        .pow-btn.active {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -323,6 +355,12 @@
             </div>
         </div>
 
+        <!-- Power Toggle -->
+        <div class="power-toggle" id="powerToggle">
+            <button class="pow-btn active" data-pow="2">t² / (1-t)² — 부드러운</button>
+            <button class="pow-btn" data-pow="4">t⁴ / (1-t)⁴ — 과장된</button>
+        </div>
+
         <!-- Controls -->
         <div class="control-row">
             <div class="slider-wrap">
@@ -342,10 +380,12 @@
 
     <script>
         // === Curves ===
+        let power = 2;
+
         const fn = {
             linear: t => t,
-            easeIn: t => t * t,
-            easeOut: t => 1 - (1 - t) * (1 - t)
+            easeIn: t => Math.pow(t, power),
+            easeOut: t => 1 - Math.pow(1 - t, power)
         };
         const colors = { linear: '#2563eb', easeIn: '#f59e0b', easeOut: '#be185d' };
 
@@ -499,6 +539,29 @@
             }
             playAnimId = requestAnimationFrame(step);
         });
+
+        // === Power Toggle ===
+        document.querySelectorAll('.pow-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.pow-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                power = parseInt(btn.dataset.pow);
+                updateFormulas();
+                render(tVal);
+            });
+        });
+
+        function updateFormulas() {
+            const sup = power === 2 ? '²' : '⁴';
+            document.querySelector('#easeIn .formula').textContent =
+                `result = A + (B - A) × t${sup}`;
+            document.querySelector('#easeOut .formula').textContent =
+                `result = A + (B - A) × (1-(1-t)${sup})`;
+            document.querySelector('#easeIn .formula-desc').textContent =
+                power === 2 ? '처음에 느리다가 점점 빨라집니다' : '처음에 훨씬 느리다가 급격히 빨라집니다';
+            document.querySelector('#easeOut .formula-desc').textContent =
+                power === 2 ? '처음에 빠르다가 점점 느려집니다' : '처음에 확 빠르다가 급격히 느려집니다';
+        }
 
         // === Init ===
         render(0);

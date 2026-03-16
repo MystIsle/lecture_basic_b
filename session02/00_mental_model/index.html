@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>멘탈 모델 3단계</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -25,14 +21,13 @@
 
         .header {
             text-align: center;
-            margin-bottom: 36px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
             font-size: 28px;
             font-weight: 700;
-            margin-bottom: 8px;
-            color: #333;
+            margin-bottom: 6px;
         }
 
         .header p {
@@ -40,181 +35,122 @@
             color: #999;
         }
 
-        .diagram {
-            position: relative;
+        /* === Step Dots === */
+        .step-dots {
             display: flex;
-            flex-direction: column;
-            gap: 0;
-            margin-bottom: 30px;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
-        .stage-wrapper {
-            position: relative;
+        .step-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            border: 2px solid #e5e5e5;
+            background: #fff;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .stage-card {
-            width: 100%;
+        .step-dot.active {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .step-dot.s1.active { border-color: #64748b; background: #f8fafc; color: #64748b; box-shadow: 0 0 0 3px rgba(100,116,139,0.12); }
+        .step-dot.s2.active { border-color: #f59e0b; background: #fffbeb; color: #b45309; box-shadow: 0 0 0 3px rgba(245,158,11,0.12); }
+        .step-dot.s3.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+        /* === Card === */
+        .card-area {
+            margin-bottom: 20px;
+            min-height: 320px;
+        }
+
+        .card {
+            display: none;
             border: 1.5px solid #e5e5e5;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 24px 20px;
             background: #fafafa;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            animation: fadeIn 0.3s ease;
         }
 
-        .stage-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        .card.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(12px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        .stage-card.stage-1 {
-            border-color: #cbd5e1;
-            background: #f1f5f9;
-        }
+        .card.s1 { border-color: #cbd5e1; background: #f8fafc; }
+        .card.s2 { border: 2.5px solid #f59e0b; background: linear-gradient(135deg, #fffbf0, #fafafa); }
+        .card.s3 { border: 2px solid #2563eb; background: linear-gradient(135deg, #eff6ff, #fafafa); }
 
-        .stage-card.stage-1::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(148,163,184,0.05) 0%, transparent 100%);
-            border-radius: 10px;
-            pointer-events: none;
-        }
-
-        .stage-card.stage-2 {
-            border: 2.5px solid #f59e0b;
-            background: linear-gradient(135deg, #fffbf0 0%, #fafafa 100%);
-        }
-
-        .stage-card.stage-2::after {
-            content: '← 여러분은 지금 여기';
-            position: absolute;
-            right: 16px;
-            top: 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #f59e0b;
-            white-space: nowrap;
-            padding: 4px 10px;
-            background: #fffbf0;
-            border: 1px solid #f59e0b;
-            border-radius: 4px;
-        }
-
-        .stage-card.stage-3 {
-            border: 2px solid #2563eb;
-            background: linear-gradient(135deg, #eff6ff 0%, #fafafa 100%);
-        }
-
-        .stage-card.stage-3::after {
-            content: '← 오늘 한 번 맛보기';
-            position: absolute;
-            right: 16px;
-            top: 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #2563eb;
-            white-space: nowrap;
-            padding: 4px 10px;
-            background: #eff6ff;
-            border: 1px solid #2563eb;
-            border-radius: 4px;
-        }
-
-        .card-header {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 12px;
-        }
-
-        .card-number {
+        .card-badge {
             display: inline-block;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            color: #666;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            color: #666;
+            margin-bottom: 8px;
         }
 
         .card-title {
-            font-size: 17px;
+            font-size: 20px;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
-        .card-description {
-            font-size: 14px;
-            line-height: 1.6;
+        .card-desc {
+            font-size: 15px;
             color: #555;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 1;
+            line-height: 1.6;
+            margin-bottom: 14px;
         }
 
         .card-example {
-            font-size: 13px;
-            line-height: 1.5;
-            color: #777;
-            padding: 8px 12px;
-            background: rgba(0,0,0,0.02);
-            border-radius: 6px;
-            border-left: 2px solid #e5e5e5;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card-example strong {
-            color: #333;
-        }
-
-        .expanded-content {
-            display: none;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e5e5;
-            position: relative;
-            z-index: 1;
-        }
-
-        .expanded-content.active {
-            display: block;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .feature-list {
-            list-style: none;
-        }
-
-        .feature-list li {
             font-size: 14px;
-            line-height: 1.6;
+            color: #666;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.025);
+            border-radius: 8px;
+            border-left: 3px solid #e5e5e5;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .card-example strong { color: #333; }
+
+        .s1 .card-example { border-left-color: #94a3b8; }
+        .s2 .card-example { border-left-color: #f59e0b; }
+        .s3 .card-example { border-left-color: #2563eb; }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 14px;
+        }
+
+        .card-features li {
+            font-size: 14px;
             color: #555;
-            margin-bottom: 8px;
-            padding-left: 16px;
+            line-height: 1.6;
+            margin-bottom: 6px;
+            padding-left: 18px;
             position: relative;
         }
 
-        .feature-list li::before {
+        .card-features li::before {
             content: '•';
             position: absolute;
             left: 0;
@@ -222,229 +158,257 @@
             font-weight: bold;
         }
 
-        .arrow-section {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px 0;
-            position: relative;
+        .card-note {
+            font-size: 14px;
+            color: #555;
+            padding: 10px 14px;
+            border-radius: 8px;
+            line-height: 1.5;
         }
 
-        .arrow {
-            width: 2px;
-            height: 24px;
-            background: #cbd5e1;
-            position: relative;
-            margin-bottom: 4px;
+        .card-note.amber {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
         }
 
-        .arrow::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 6px solid #cbd5e1;
+        .card-note.blue {
+            background: #eff6ff;
+            border: 1px solid #2563eb;
         }
 
-        .transition-label {
+        .card-note strong { color: #333; }
+
+        /* You-are-here badge */
+        .here-badge {
+            display: inline-block;
             font-size: 12px;
             font-weight: 600;
-            color: #666;
-            text-align: center;
-            margin-top: 4px;
-            line-height: 1.4;
-            max-width: 200px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
         }
 
-        .transition-1-2 .transition-label {
-            color: #f59e0b;
+        .here-badge.amber {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
+            color: #b45309;
         }
 
-        .transition-2-3 {
-            margin-bottom: 0;
-        }
-
-        .transition-2-3 .transition-label {
+        .here-badge.blue {
+            background: #eff6ff;
+            border: 1px solid #2563eb;
             color: #2563eb;
         }
 
-        .note-box {
-            font-size: 13px;
-            color: #555;
-            background: #fffbf0;
-            border: 1px solid #f59e0b;
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin-top: 8px;
-            line-height: 1.5;
-            position: relative;
-            z-index: 1;
+        /* === Nav Buttons === */
+        .nav-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
-        .footer-message {
-            margin-top: 30px;
-            padding: 16px 18px;
+        .nav-btn {
+            padding: 10px 22px;
+            border: 1.5px solid #e5e5e5;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #fff;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-btn.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .nav-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .nav-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #999;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* === Transition label === */
+        .transition-msg {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+
+        .transition-msg.amber { color: #d97706; }
+        .transition-msg.blue { color: #2563eb; }
+
+        /* === Footer === */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+            padding: 14px 16px;
             background: #f0f9ff;
             border-left: 3px solid #2563eb;
             border-radius: 6px;
-            font-size: 14px;
-            color: #333;
             line-height: 1.6;
-            text-align: center;
         }
 
-        .footer-message strong {
-            color: #2563eb;
-            font-weight: 700;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
-            .stage-card.stage-2::after,
-            .stage-card.stage-3::after {
-                position: static;
-                display: inline-block;
-                margin-top: 8px;
-                right: auto;
-                top: auto;
-            }
-
-            .stage-card {
-                padding: 18px 16px;
-            }
-
-            .header h1 {
-                font-size: 20px;
-            }
-        }
+        .footer strong { color: #2563eb; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>멘탈 모델 3단계</h1>
-            <p>각 단계를 클릭하면 특징이 펼쳐집니다</p>
+            <p>게임 개발자의 성장 경로</p>
         </div>
 
-        <div class="diagram">
-            <!-- Stage 1 -->
-            <div class="stage-wrapper">
-                <div class="stage-card stage-1" onclick="toggleExpand(this)">
-                    <div class="card-header">
-                        <div class="card-number">Stage 1</div>
-                        <div class="card-title">따라 치는 사람</div>
-                    </div>
-                    <div class="card-description">
-                        코드 복붙, 돌아가면 OK
-                    </div>
-                    <div class="card-example">
-                        <strong>예시:</strong> 튜토리얼 따라하기, 에러나면 구글링
-                    </div>
-                    <div class="expanded-content">
-                        <ul class="feature-list">
-                            <li>코드를 이해하지 않고 복사-붙여넣기로 진행</li>
-                            <li>컴파일 에러 메시지를 읽기보다 구글링</li>
-                            <li>왜 이 코드를 써야 하는지 묻지 않음</li>
-                            <li>프로젝트마다 같은 부분에서 같은 실수 반복</li>
-                        </ul>
-                    </div>
+        <!-- Step Dots -->
+        <div class="step-dots">
+            <div class="step-dot s1 active" data-idx="0">1</div>
+            <div class="step-dot s2" data-idx="1">2</div>
+            <div class="step-dot s3" data-idx="2">3</div>
+        </div>
+
+        <!-- Cards -->
+        <div class="card-area">
+            <!-- Card 1 -->
+            <div class="card s1 active" data-card="0">
+                <div class="card-badge">Stage 1</div>
+                <div class="card-title">따라 치는 사람</div>
+                <div class="card-desc">코드 복붙, 돌아가면 OK</div>
+                <div class="card-example">
+                    <strong>예시:</strong> 튜토리얼 따라하기, 에러나면 구글링
+                </div>
+                <ul class="card-features">
+                    <li>코드를 이해하지 않고 복사-붙여넣기로 진행</li>
+                    <li>컴파일 에러 메시지를 읽기보다 구글링</li>
+                    <li>왜 이 코드를 써야 하는지 묻지 않음</li>
+                    <li>프로젝트마다 같은 부분에서 같은 실수 반복</li>
+                </ul>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card s2" data-card="1">
+                <div class="here-badge amber">← 여러분은 지금 여기</div>
+                <div class="card-badge">Stage 2</div>
+                <div class="card-title">도구를 쓸 줄 아는 사람</div>
+                <div class="card-desc">CMC, BP 노드 조합. "이걸 쓰면 된다"를 안다</div>
+                <div class="card-example">
+                    <strong>예시:</strong> AddMovementInput 호출, 블루프린트 조합
+                </div>
+                <ul class="card-features">
+                    <li>공식 문서를 통해 API와 도구를 검색할 수 있음</li>
+                    <li>"이 기능을 만들려면 X 함수를 써야 한다"를 인식</li>
+                    <li>기본 논리 흐름(Input → Logic → Output)을 이해</li>
+                    <li>다양한 프로젝트에 도구 조합을 적용 가능</li>
+                </ul>
+                <div class="card-note amber">
+                    ✓ 대부분의 개발자는 이 단계에서 생산성이 가장 높습니다
                 </div>
             </div>
 
-            <!-- Arrow 1 to 2 -->
-            <div class="arrow-section transition-1-2">
-                <div class="arrow"></div>
-                <div class="transition-label">반복 경험 — 여러 프로젝트를 만들어보기</div>
-            </div>
-
-            <!-- Stage 2 -->
-            <div class="stage-wrapper">
-                <div class="stage-card stage-2" onclick="toggleExpand(this)">
-                    <div class="card-header">
-                        <div class="card-number">Stage 2</div>
-                        <div class="card-title">도구를 쓸 줄 아는 사람</div>
-                    </div>
-                    <div class="card-description">
-                        CMC, BP 노드 조합. "이걸 쓰면 된다"를 안다
-                    </div>
-                    <div class="card-example">
-                        <strong>예시:</strong> AddMovementInput 호출, 블루프린트 조합
-                    </div>
-                    <div class="expanded-content">
-                        <ul class="feature-list">
-                            <li>공식 문서를 통해 API와 도구를 검색할 수 있음</li>
-                            <li>"이 기능을 만들려면 X 함수를 써야 한다"를 인식</li>
-                            <li>기본 논리 흐름(Input → Logic → Output)을 이해</li>
-                            <li>다양한 프로젝트에 도구 조합을 적용 가능</li>
-                        </ul>
-                        <div class="note-box">
-                            ✓ 대부분의 개발자는 이 단계에서 생산성이 가장 높습니다
-                        </div>
-                    </div>
+            <!-- Card 3 -->
+            <div class="card s3" data-card="2">
+                <div class="here-badge blue">← 오늘 한 번 맛보기</div>
+                <div class="card-badge">Stage 3</div>
+                <div class="card-title">원리를 아는 사람</div>
+                <div class="card-desc">"이 안에서 뭘 하고 있는지" 읽힘. 공식 문서가 읽힌다</div>
+                <div class="card-example">
+                    <strong>예시:</strong> DeltaTime 왜 곱하는지, CMC 내부 로직
                 </div>
-            </div>
-
-            <!-- Arrow 2 to 3 -->
-            <div class="arrow-section transition-2-3">
-                <div class="arrow"></div>
-                <div class="transition-label">원리를 직접 만져보기 — 도구를 벗기고 밑바닥을 보는 경험</div>
-            </div>
-
-            <!-- Stage 3 -->
-            <div class="stage-wrapper">
-                <div class="stage-card stage-3" onclick="toggleExpand(this)">
-                    <div class="card-header">
-                        <div class="card-number">Stage 3</div>
-                        <div class="card-title">원리를 아는 사람</div>
-                    </div>
-                    <div class="card-description">
-                        "이 안에서 뭘 하고 있는지" 읽힘. 공식 문서가 읽힌다
-                    </div>
-                    <div class="card-example">
-                        <strong>예시:</strong> DeltaTime 왜 곱하는지, CMC 내부 로직
-                    </div>
-                    <div class="expanded-content">
-                        <ul class="feature-list">
-                            <li>API 내부의 구현 원리를 추적하고 이해</li>
-                            <li>공식 문서의 한 줄짜리 설명이 무엇을 의미하는지 파악</li>
-                            <li>도구 선택의 trade-off를 이해하고 평가</li>
-                            <li>예상 밖의 버그를 체계적으로 진단 가능</li>
-                        </ul>
-                        <div class="note-box">
-                            💡 <strong>3단계는 도달 목표가 아니라, 2단계를 더 잘하기 위한 보조 무기입니다</strong>
-                        </div>
-                    </div>
+                <ul class="card-features">
+                    <li>API 내부의 구현 원리를 추적하고 이해</li>
+                    <li>공식 문서의 한 줄짜리 설명이 무엇을 의미하는지 파악</li>
+                    <li>도구 선택의 trade-off를 이해하고 평가</li>
+                    <li>예상 밖의 버그를 체계적으로 진단 가능</li>
+                </ul>
+                <div class="card-note blue">
+                    <strong>3단계는 도달 목표가 아니라, 2단계를 더 잘하기 위한 보조 무기입니다</strong>
                 </div>
             </div>
         </div>
 
-        <div class="footer-message">
+        <!-- Transition message -->
+        <div class="transition-msg" id="transMsg"></div>
+
+        <!-- Navigation -->
+        <div class="nav-row">
+            <button class="nav-btn" id="prevBtn" disabled>◀ 이전</button>
+            <span class="nav-label" id="navLabel">1 / 3</span>
+            <button class="nav-btn primary" id="nextBtn">다음 ▶</button>
+        </div>
+
+        <div class="footer">
             <strong>막힐 때 구글링 키워드가 달라집니다</strong><br>
-            1단계: "C++ 에러 메시지" → 2단계: "언리얼 API 함수명" → 3단계: "원리와 내부 동작"
+            1단계: "에러 메시지" → 2단계: "API 함수명" → 3단계: "원리와 내부 동작"
         </div>
     </div>
 
     <script>
-        function toggleExpand(element) {
-            const expandedContent = element.querySelector('.expanded-content');
-            const isActive = expandedContent.classList.contains('active');
+        let current = 0;
+        const cards = document.querySelectorAll('.card');
+        const dots = document.querySelectorAll('.step-dot');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const navLabel = document.getElementById('navLabel');
+        const transMsg = document.getElementById('transMsg');
 
-            // Close all other expanded contents
-            document.querySelectorAll('.expanded-content.active').forEach(el => {
-                if (el !== expandedContent) {
-                    el.classList.remove('active');
-                }
-            });
+        const transitions = [
+            '',
+            '반복 경험 — 여러 프로젝트를 만들어보기',
+            '원리를 직접 만져보기 — 도구를 벗기고 밑바닥을 보는 경험'
+        ];
+        const transClasses = ['', 'amber', 'blue'];
 
-            // Toggle current
-            expandedContent.classList.toggle('active');
+        function goTo(idx) {
+            current = Math.max(0, Math.min(2, idx));
+
+            cards.forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
+            dots.forEach(d => d.classList.remove('active'));
+
+            const card = cards[current];
+            card.style.display = 'block';
+            // Force reflow for animation
+            void card.offsetWidth;
+            card.classList.add('active');
+            dots[current].classList.add('active');
+
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = current === 2;
+            navLabel.textContent = `${current + 1} / 3`;
+
+            transMsg.textContent = transitions[current];
+            transMsg.className = 'transition-msg ' + transClasses[current];
         }
+
+        prevBtn.addEventListener('click', () => goTo(current - 1));
+        nextBtn.addEventListener('click', () => goTo(current + 1));
+        dots.forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.idx))));
+
+        goTo(0);
     </script>
 </body>
 </html>

@@ -346,12 +346,12 @@
 
                 <div class="pipe-stage s3" data-stage="2" id="stage2">
                     <span class="pipe-num">3</span>
-                    <span class="pipe-title">ForwardVector</span>
+                    <span class="pipe-title">이동방향</span>
                     <div class="pipe-val" id="val2">(1.00, 0.00)</div>
                     <div class="pipe-detail">
                         <div class="pipe-detail-inner">
-                            <code>GetForwardVector()</code><br>
-                            회전에서 전방 방향 벡터 추출
+                            <code>Rotation + Input → Direction</code><br>
+                            카메라 회전 + 입력 키로 월드 방향 벡터 결정
                         </div>
                     </div>
                 </div>
@@ -418,10 +418,12 @@
         let litStage = -1;          // -1 = none, 0-3 = lit stage
         let litTimer = null;
         let charX = 0, charY = 0;  // character position in game units
-        const MOVE_SPEED = 2;
+        const MOVE_SPEED = 10;
+        let trail = [];           // movement trail [{x, y}]
+        const MAX_TRAIL = 20;
 
         // Key → local direction offset (degrees from forward)
-        const keyOffsets = { w: 0, s: 180, a: -90, d: 90 };
+        const keyOffsets = { w: 0, s: 180, a: 90, d: -90 };
         const keyLabels = { w: 'W = 전진 (1.0)', s: 'S = 후진 (-1.0)', a: 'A = 좌 (1.0)', d: 'D = 우 (1.0)' };
 
         // === DOM ===
@@ -556,11 +558,16 @@
             const offset = keyOffsets[key];
             const worldDeg = yaw + offset;
             const rad = worldDeg * Math.PI / 180;
+
+            // Trail: save previous position
+            trail.push({ x: charX, y: charY });
+            if (trail.length > MAX_TRAIL) trail.shift();
+
             charX += Math.cos(rad) * MOVE_SPEED;
-            charY += Math.sin(rad) * MOVE_SPEED;
+            charY -= Math.sin(rad) * MOVE_SPEED; // canvas Y is inverted
 
             // Wrap around
-            const BOUND = 80;
+            const BOUND = 100;
             if (charX > BOUND) charX = -BOUND;
             if (charX < -BOUND) charX = BOUND;
             if (charY > BOUND) charY = -BOUND;
@@ -671,15 +678,30 @@
                 ctx.fillText('이동방향', ax + 8, ay + 4);
             }
 
+            // Movement trail
+            if (trail.length > 1) {
+                for (let i = 0; i < trail.length; i++) {
+                    const t = trail[i];
+                    const tx = cw / 2 + t.x * 1.5;
+                    const ty = ch / 2 + t.y * 1.5;
+                    const alpha = 0.1 + 0.4 * (i / trail.length);
+                    const r = 2 + 3 * (i / trail.length);
+                    ctx.fillStyle = `rgba(190, 24, 93, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
             // Character circle
             ctx.fillStyle = '#333';
             ctx.beginPath();
             ctx.arc(cx, cy, 10, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#fff';
-            ctx.font = '9px Segoe UI';
+            ctx.font = '10px Segoe UI';
             ctx.textAlign = 'center';
-            ctx.fillText('●', cx, cy + 3);
+            ctx.fillText('C', cx, cy + 4);
         }
 
         // === Init ===

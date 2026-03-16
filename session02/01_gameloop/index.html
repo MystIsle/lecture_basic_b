@@ -227,6 +227,18 @@
             background: #b91c1c;
         }
 
+        .speed-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: 40px;
+        }
+
+        .speed-btn.active {
+            background: #333;
+            border-color: #333;
+            color: #fff;
+        }
+
         /* === Frame History === */
         .history-section {
             margin-bottom: 20px;
@@ -274,80 +286,69 @@
             box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
         }
 
-        /* === Stage Info Cards === */
-        .info-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        /* === Timeline + Character === */
+        .scene-section {
             margin-bottom: 20px;
         }
 
-        .info-card {
+        .scene-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .scene-track {
+            position: relative;
+            height: 48px;
+            background: #f9fafb;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .scene-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e5e5;
+        }
+
+        .scene-char {
+            position: absolute;
+            bottom: 6px;
+            left: 12px;
+            /* no transition — jumps on render stage only */
+        }
+
+        .timeline-wrap {
             background: #fafafa;
             border: 1.5px solid #e5e5e5;
             border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 14px 16px;
         }
 
-        .info-card:hover {
-            border-color: #ccc;
-        }
-
-        .info-card-header {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .info-title {
-            flex: 1;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .info-toggle {
+        .timeline-label {
             font-size: 12px;
-            color: #999;
-            transition: transform 0.2s;
-        }
-
-        .info-card.expanded .info-toggle {
-            transform: rotate(180deg);
-        }
-
-        .info-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .info-card.expanded .info-body {
-            max-height: 200px;
-        }
-
-        .info-text {
-            padding: 0 16px 14px 36px;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .info-text .highlight {
-            background: #fef3c7;
-            padding: 2px 6px;
-            border-radius: 4px;
             font-weight: 600;
-            color: #b45309;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .timeline-canvas-wrap {
+            position: relative;
+        }
+
+        .timeline-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
         }
 
         /* === Footer === */
@@ -407,6 +408,9 @@
             <button class="ctrl-btn" id="prevBtn">◀ 이전</button>
             <button class="ctrl-btn primary" id="nextBtn">다음 ▶</button>
             <button class="ctrl-btn" id="autoBtn">⏯ 자동 재생</button>
+            <button class="ctrl-btn speed-btn active" data-speed="600" id="speed1">×1</button>
+            <button class="ctrl-btn speed-btn" data-speed="250" id="speed2">×3</button>
+            <button class="ctrl-btn speed-btn" data-speed="100" id="speed3">×10</button>
         </div>
 
         <!-- Frame History -->
@@ -415,48 +419,27 @@
             <div class="history-dots" id="historyDots"></div>
         </div>
 
-        <!-- Stage Info Cards -->
-        <div class="info-cards">
-            <div class="info-card" data-info="input">
-                <div class="info-card-header">
-                    <div class="info-dot" style="background: #2563eb;"></div>
-                    <div class="info-title">입력 (Input)</div>
-                    <div class="info-toggle">▼</div>
-                </div>
-                <div class="info-body">
-                    <div class="info-text">
-                        키보드, 마우스, 게임패드의 입력을 수집합니다.<br>
-                        "W키가 눌렸는가?", "마우스가 얼마나 움직였는가?" 같은 질문에 답하는 단계입니다.
-                    </div>
-                </div>
+        <!-- Scene: Character Movement -->
+        <div class="scene-section">
+            <div class="scene-label">캐릭터 위치</div>
+            <div class="scene-track" id="sceneTrack">
+                <div class="scene-ground"></div>
+                <svg class="scene-char" id="sceneChar" width="28" height="34" viewBox="0 0 28 34">
+                    <rect x="4" y="0" width="20" height="24" rx="4" fill="#2563eb"/>
+                    <rect x="6" y="24" width="6" height="8" rx="2" fill="#1e40af"/>
+                    <rect x="16" y="24" width="6" height="8" rx="2" fill="#1e40af"/>
+                    <circle cx="11" cy="10" r="2.5" fill="#fff"/>
+                    <circle cx="19" cy="10" r="2.5" fill="#fff"/>
+                </svg>
             </div>
+        </div>
 
-            <div class="info-card" data-info="logic">
-                <div class="info-card-header">
-                    <div class="info-dot" style="background: #f59e0b;"></div>
-                    <div class="info-title">로직 (Tick)</div>
-                    <div class="info-toggle">▼</div>
-                </div>
-                <div class="info-body">
-                    <div class="info-text">
-                        캐릭터 이동, AI 판단, 물리 계산을 수행합니다.<br>
-                        <span class="highlight">1회차에서 본 Tick이 바로 여기!</span><br>
-                        게임의 모든 상태가 이 단계에서 업데이트됩니다.
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-card" data-info="render">
-                <div class="info-card-header">
-                    <div class="info-dot" style="background: #be185d;"></div>
-                    <div class="info-title">렌더 (Draw)</div>
-                    <div class="info-toggle">▼</div>
-                </div>
-                <div class="info-body">
-                    <div class="info-text">
-                        계산 결과를 화면에 그립니다.<br>
-                        카메라가 본 장면을 모니터에 출력하는 단계입니다. 로직에서 바뀐 캐릭터 위치가 여기서 눈에 보입니다.
-                    </div>
+        <!-- Frame Timeline Graph -->
+        <div class="scene-section">
+            <div class="timeline-wrap">
+                <div class="timeline-label">프레임 타임라인 — 프레임이 쌓일수록 캐릭터가 이동합니다</div>
+                <div class="timeline-canvas-wrap">
+                    <canvas id="timelineCanvas" width="668" height="80"></canvas>
                 </div>
             </div>
         </div>
@@ -591,12 +574,28 @@
             goPrev();
         });
 
+        // === Speed Control ===
+        let autoSpeed = 600; // ms per step
+
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                autoSpeed = parseInt(btn.dataset.speed);
+                // If currently playing, restart interval with new speed
+                if (autoPlaying) {
+                    clearInterval(autoTimerId);
+                    autoTimerId = setInterval(goNext, autoSpeed);
+                }
+            });
+        });
+
         // === Auto Play ===
         function startAuto() {
             autoPlaying = true;
             autoBtn.textContent = '⏸ 정지';
             autoBtn.classList.add('auto-active');
-            autoTimerId = setInterval(goNext, 600);
+            autoTimerId = setInterval(goNext, autoSpeed);
         }
 
         function stopAuto() {
@@ -613,7 +612,6 @@
             if (autoPlaying) {
                 stopAuto();
             } else {
-                // If at end, restart
                 if (totalStep() >= maxStep()) {
                     setFromTotal(0);
                     render();
@@ -622,15 +620,122 @@
             }
         });
 
-        // === Info Card Toggle ===
-        document.querySelectorAll('.info-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.classList.toggle('expanded');
-            });
-        });
+        // === Timeline Canvas + Character ===
+        const timelineCanvas = document.getElementById('timelineCanvas');
+        const tlCtx = timelineCanvas.getContext('2d');
+        const sceneChar = document.getElementById('sceneChar');
+        const sceneTrack = document.getElementById('sceneTrack');
+
+        const stageColors = ['#2563eb', '#f59e0b', '#be185d'];
+        const stageLabels = ['I', 'T', 'D'];
+
+        function drawTimeline() {
+            const dpr = window.devicePixelRatio || 1;
+            const cw = timelineCanvas.offsetWidth;
+            const ch = timelineCanvas.offsetHeight;
+            timelineCanvas.width = cw * dpr;
+            timelineCanvas.height = ch * dpr;
+            tlCtx.scale(dpr, dpr);
+
+            // Clear
+            tlCtx.fillStyle = '#fff';
+            tlCtx.fillRect(0, 0, cw, ch);
+
+            const pad = 4;
+            const totalSlots = MAX_FRAMES * 3;
+            const slotW = (cw - pad * 2) / totalSlots;
+            const barH = ch - 30; // leave room for labels
+            const barY = 6;
+
+            // Draw completed + current steps
+            const curStep = totalStep();
+            for (let i = 0; i <= curStep && i < totalSlots; i++) {
+                const f = Math.floor(i / 3);  // frame index 0-based
+                const s = i % 3;               // stage index
+                const x = pad + i * slotW;
+                const isCurrent = (i === curStep);
+
+                // Bar
+                tlCtx.fillStyle = stageColors[s];
+                tlCtx.globalAlpha = isCurrent ? 1.0 : 0.6;
+                tlCtx.fillRect(x + 1, barY, slotW - 2, barH);
+                tlCtx.globalAlpha = 1;
+
+                // Stage letter inside bar
+                if (slotW > 12) {
+                    tlCtx.fillStyle = '#fff';
+                    tlCtx.font = `bold ${Math.min(11, slotW - 4)}px system-ui`;
+                    tlCtx.textAlign = 'center';
+                    tlCtx.fillText(stageLabels[s], x + slotW / 2, barY + barH / 2 + 4);
+                }
+            }
+
+            // Frame number labels below
+            for (let f = 0; f < MAX_FRAMES; f++) {
+                const startSlot = f * 3;
+                const x = pad + startSlot * slotW;
+                const groupW = slotW * 3;
+
+                // Frame bracket line
+                const ly = barY + barH + 4;
+                if (f < frame) {
+                    tlCtx.strokeStyle = '#ccc';
+                    tlCtx.lineWidth = 1;
+                    tlCtx.beginPath();
+                    tlCtx.moveTo(x + 2, ly);
+                    tlCtx.lineTo(x + 2, ly + 4);
+                    tlCtx.lineTo(x + groupW - 2, ly + 4);
+                    tlCtx.lineTo(x + groupW - 2, ly);
+                    tlCtx.stroke();
+                }
+
+                // Frame number
+                tlCtx.fillStyle = f + 1 === frame ? '#2563eb' : (f + 1 < frame ? '#999' : '#ddd');
+                tlCtx.font = `${f + 1 === frame ? 'bold ' : ''}12px system-ui`;
+                tlCtx.textAlign = 'center';
+                tlCtx.fillText(`F${f + 1}`, x + groupW / 2, ly + 16);
+            }
+
+            // Empty slots (future)
+            for (let i = curStep + 1; i < totalSlots; i++) {
+                const x = pad + i * slotW;
+                tlCtx.fillStyle = '#f3f4f6';
+                tlCtx.fillRect(x + 1, barY, slotW - 2, barH);
+            }
+
+            // Current position marker
+            if (curStep >= 0) {
+                const mx = pad + curStep * slotW + slotW / 2;
+                tlCtx.fillStyle = '#333';
+                tlCtx.beginPath();
+                tlCtx.moveTo(mx, barY - 1);
+                tlCtx.lineTo(mx - 4, barY - 6);
+                tlCtx.lineTo(mx + 4, barY - 6);
+                tlCtx.closePath();
+                tlCtx.fill();
+            }
+        }
+
+        function updateCharacter() {
+            // Character only moves when render stage completes
+            // Count fully rendered frames: frames before current + current if past render
+            const renderedFrames = (frame - 1) + (stage >= 2 ? 1 : 0);
+            const trackW = sceneTrack.offsetWidth - 40;
+            const pct = renderedFrames / MAX_FRAMES;
+            sceneChar.style.left = (12 + pct * trackW) + 'px';
+        }
+
+        // Patch render to also update timeline + character
+        const _origRender = render;
+        render = function() {
+            _origRender();
+            drawTimeline();
+            updateCharacter();
+        };
 
         // === Init ===
         render();
+        window.addEventListener('resize', () => { drawTimeline(); updateCharacter(); });
     </script>
 </body>
 </html>

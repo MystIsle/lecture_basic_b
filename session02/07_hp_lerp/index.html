@@ -57,26 +57,27 @@
             position: relative;
             width: 100%;
             height: 36px;
-            background: #fee2e2;
+            background: #f3f4f6;
             border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #fca5a5;
+            border: 1px solid #e5e5e5;
         }
 
+        /* 뒤: 노란 바 (보간, 천천히 따라옴) */
+        .hp-bar-lerp {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #f59e0b;
+            border-radius: 7px;
+        }
+
+        /* 앞: 빨간 바 (실제 HP, 즉시 이동) */
         .hp-bar-actual {
             position: absolute;
             top: 0; left: 0;
             height: 100%;
-            background: #fca5a5;
-            border-radius: 7px;
-            transition: width 0.05s linear;
-        }
-
-        .hp-bar-display {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%;
-            background: #be185d;
+            background: #dc2626;
             border-radius: 7px;
             display: flex;
             align-items: center;
@@ -228,6 +229,9 @@
             border: none;
         }
 
+        #dmgSlider::-webkit-slider-thumb { background: #dc2626; }
+        #dmgSlider::-moz-range-thumb { background: #dc2626; }
+
         /* Graph */
         .graph-section {
             background: #fafafa;
@@ -296,12 +300,12 @@
         <!-- HP Bar -->
         <div class="hp-section">
             <div class="hp-values">
-                <span>표시 HP: <strong id="displayHpText">100</strong></span>
-                <span>실제 HP: <strong id="actualHpText">100</strong></span>
+                <span style="color:#dc2626">실제 HP: <strong id="actualHpText">100</strong></span>
+                <span style="color:#d97706">보간 HP: <strong id="displayHpText">100</strong></span>
             </div>
             <div class="hp-bar-bg">
-                <div class="hp-bar-actual" id="barActual" style="width:100%"></div>
-                <div class="hp-bar-display" id="barDisplay" style="width:100%">
+                <div class="hp-bar-lerp" id="barLerp" style="width:100%"></div>
+                <div class="hp-bar-actual" id="barActual" style="width:100%">
                     <span class="hp-bar-label" id="barLabel">100</span>
                 </div>
             </div>
@@ -309,8 +313,13 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="damage-btn" id="damageBtn">데미지! (-30~50)</button>
+            <button class="damage-btn" id="damageBtn">데미지! (-<span id="dmgBtnVal">20</span>)</button>
             <button class="reset-btn" id="resetBtn">리셋</button>
+        </div>
+        <div class="setting-box" style="margin-bottom:16px;">
+            <div class="setting-label">데미지량</div>
+            <div class="duration-value" style="color:#dc2626"><span id="dmgVal">20</span></div>
+            <input type="range" id="dmgSlider" min="5" max="50" step="5" value="20" style="accent-color:#dc2626">
         </div>
 
         <!-- Settings: Curve + Duration -->
@@ -327,15 +336,23 @@
                         <label for="easeIn"><span class="color-dot" style="background:#f59e0b"></span>ease-in (t²)</label>
                     </div>
                     <div class="radio-group">
+                        <input type="radio" id="easeIn4" name="curve" value="easeIn4">
+                        <label for="easeIn4"><span class="color-dot" style="background:#d97706"></span>ease-in (t⁴)</label>
+                    </div>
+                    <div class="radio-group">
                         <input type="radio" id="easeOut" name="curve" value="easeOut">
-                        <label for="easeOut"><span class="color-dot" style="background:#be185d"></span>ease-out</label>
+                        <label for="easeOut"><span class="color-dot" style="background:#be185d"></span>ease-out (⁴√t)</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="easeOut4" name="curve" value="easeOut4">
+                        <label for="easeOut4"><span class="color-dot" style="background:#9d174d"></span>ease-out (²√t)</label>
                     </div>
                 </div>
             </div>
             <div class="setting-box">
                 <div class="setting-label">Lerp 시간</div>
                 <div class="duration-value"><span id="durVal">1.0</span><span class="duration-unit">초</span></div>
-                <input type="range" id="durSlider" min="0.3" max="3.0" step="0.1" value="1.0">
+                <input type="range" id="durSlider" min="0.1" max="3.0" step="0.05" value="1.0">
             </div>
         </div>
 
@@ -373,17 +390,21 @@ DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>
         const curves = {
             linear: t => t,
             easeIn: t => t * t,
-            easeOut: t => 1 - (1 - t) * (1 - t)
+            easeIn4: t => t * t * t * t,
+            easeOut: t => 1 - Math.pow(1 - t, 4),
+            easeOut4: t => 1 - (1 - t) * (1 - t)
         };
         const curveColors = {
             linear: '#2563eb',
             easeIn: '#f59e0b',
-            easeOut: '#be185d'
+            easeIn4: '#d97706',
+            easeOut: '#be185d',
+            easeOut4: '#9d174d'
         };
 
         // === DOM ===
         const barActual = document.getElementById('barActual');
-        const barDisplay = document.getElementById('barDisplay');
+        const barLerp = document.getElementById('barLerp');
         const barLabel = document.getElementById('barLabel');
         const displayHpText = document.getElementById('displayHpText');
         const actualHpText = document.getElementById('actualHpText');
@@ -392,10 +413,11 @@ DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>
 
         // === Update display ===
         function updateUI(t) {
-            const pct = Math.max(0, displayHp);
-            barDisplay.style.width = pct + '%';
+            // 빨간 바: 실제 HP (즉시)
             barActual.style.width = Math.max(0, actualHp) + '%';
-            barLabel.textContent = Math.round(displayHp);
+            barLabel.textContent = Math.round(actualHp);
+            // 노란 바: 보간 HP (천천히 따라옴)
+            barLerp.style.width = Math.max(0, displayHp) + '%';
             displayHpText.textContent = Math.round(displayHp);
             actualHpText.textContent = Math.round(actualHp);
             drawGraph(t || 0);
@@ -500,12 +522,23 @@ DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>
             animId = requestAnimationFrame(animate);
         }
 
+        // === Damage slider ===
+        let damageAmount = 20;
+        const dmgSlider = document.getElementById('dmgSlider');
+        dmgSlider.addEventListener('input', e => {
+            damageAmount = parseInt(e.target.value);
+            document.getElementById('dmgVal').textContent = damageAmount;
+            document.getElementById('dmgBtnVal').textContent = damageAmount;
+        });
+
         // === Events ===
         document.getElementById('damageBtn').addEventListener('click', () => {
-            const dmg = Math.floor(Math.random() * 21) + 30; // 30-50
-            actualHp = Math.max(0, actualHp - dmg);
+            actualHp = Math.max(0, actualHp - damageAmount);
+            // 빨간 바 즉시 이동
             barActual.style.width = Math.max(0, actualHp) + '%';
+            barLabel.textContent = Math.round(actualHp);
             actualHpText.textContent = Math.round(actualHp);
+            // 노란 바 보간 시작
             startLerp();
         });
 
@@ -516,6 +549,9 @@ DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>
             displayHp = 100;
             lerpFrom = 100;
             lerpTo = 100;
+            barActual.style.width = '100%';
+            barLerp.style.width = '100%';
+            barLabel.textContent = '100';
             updateUI(0);
         });
 
@@ -535,14 +571,14 @@ DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>
         const durSlider = document.getElementById('durSlider');
         durSlider.addEventListener('input', e => {
             duration = parseFloat(e.target.value);
-            document.getElementById('durVal').textContent = duration.toFixed(1);
+            document.getElementById('durVal').textContent = duration % 1 === 0 ? duration.toFixed(1) : duration.toFixed(2);
             updateCode();
         });
 
         function updateCode() {
-            const curveNames = { linear: 'linear', easeIn: 't²', easeOut: '1-(1-t)²' };
+            const curveNames = { linear: 'linear', easeIn: 't²', easeIn4: 't⁴', easeOut: '1-(1-t)⁴', easeOut4: '1-(1-t)²' };
             document.getElementById('codeDisplay').innerHTML =
-                `InterpSpeed = <span class="highlight">${duration.toFixed(1)}</span>s\nDisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">${curveNames[curve]}</span>(t))`;
+                `InterpSpeed = <span class="highlight">${duration % 1 === 0 ? duration.toFixed(1) : duration.toFixed(2)}</span>s\nDisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">${curveNames[curve]}</span>(t))`;
         }
 
         // === Init ===

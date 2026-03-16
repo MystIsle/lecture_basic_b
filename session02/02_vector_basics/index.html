@@ -250,6 +250,42 @@
             font-family: 'Courier New', monospace;
             border: 1px solid;
         }
+
+        .overlay-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .overlay-check:hover {
+            border-color: #10b981;
+        }
+
+        .overlay-check input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #10b981;
+            cursor: pointer;
+        }
+
+        .check-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .check-hint {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -268,6 +304,12 @@
         <!-- 탭 1: 벡터 = 화살표 -->
         <div id="tab1" class="tab-content active">
             <canvas id="canvas1" width="668" height="400"></canvas>
+
+            <label class="overlay-check">
+                <input type="checkbox" id="show-norm">
+                <span class="check-label">정규화 벡터 표시</span>
+                <span class="check-hint">크기 1.0인 방향 벡터를 겹쳐 보여줍니다</span>
+            </label>
 
             <div class="info-row">
                 <div class="info-panel">
@@ -408,9 +450,42 @@
         const c1 = document.getElementById('canvas1');
         const ctx1 = c1.getContext('2d');
 
+        const showNormCb = document.getElementById('show-norm');
+
         function drawT1() {
             ctx1.clearRect(0, 0, CANVAS_W, CANVAS_H);
             drawGrid(ctx1); drawAxes(ctx1);
+
+            // 정규화 오버레이: 단위원 + 정규화 벡터
+            if (showNormCb.checked) {
+                // 단위원 (점선)
+                ctx1.strokeStyle = '#d1d5db';
+                ctx1.lineWidth = 1;
+                ctx1.setLineDash([5, 5]);
+                ctx1.beginPath();
+                ctx1.arc(OX, OY, UNIT, 0, Math.PI * 2);
+                ctx1.stroke();
+                ctx1.setLineDash([]);
+                ctx1.font = '12px Segoe UI';
+                ctx1.fillStyle = '#bbb';
+                ctx1.fillText('크기 = 1.0', OX + UNIT + 6, OY - 4);
+
+                // 정규화 벡터
+                const m = mag(t1.gx, t1.gy);
+                if (m > 0.01) {
+                    const nx = t1.gx / m;
+                    const ny = t1.gy / m;
+                    drawArrow(ctx1, nx, ny, '#10b981', 'N');
+
+                    // 정규화 벡터 끝점 표시
+                    const npx = OX + nx * UNIT;
+                    const npy = OY - ny * UNIT;
+                    ctx1.fillStyle = '#10b981';
+                    ctx1.beginPath(); ctx1.arc(npx, npy, 4, 0, Math.PI * 2); ctx1.fill();
+                }
+            }
+
+            // 원본 벡터
             drawArrow(ctx1, t1.gx, t1.gy, '#2563eb', '');
 
             // 끝점 핸들
@@ -425,6 +500,8 @@
             document.getElementById('vec1-y').textContent = t1.gy.toFixed(2);
             document.getElementById('vec1-mag').textContent = mag(t1.gx, t1.gy).toFixed(2);
         }
+
+        showNormCb.addEventListener('change', drawT1);
 
         c1.addEventListener('mousedown', () => t1.dragging = true);
         c1.addEventListener('mouseup', () => t1.dragging = false);

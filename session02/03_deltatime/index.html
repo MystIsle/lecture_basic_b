@@ -35,6 +35,41 @@
             color: #999;
         }
 
+        /* === Tabs === */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 1.5px solid #e5e5e5;
+        }
+
+        .tab-btn {
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #999;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover { color: #2563eb; }
+
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         /* === Track === */
         .track-section {
             margin-bottom: 20px;
@@ -60,12 +95,11 @@
 
         .track-fill {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             height: 100%;
             background: linear-gradient(90deg, #eff6ff, #dbeafe);
             border-radius: 22px;
-            transition: width 0.2s ease;
+            transition: width 0.15s ease;
         }
 
         .track-ball {
@@ -76,7 +110,7 @@
             border-radius: 50%;
             background: #2563eb;
             box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-            transition: left 0.2s ease;
+            transition: left 0.15s ease;
             z-index: 2;
         }
 
@@ -91,7 +125,6 @@
             z-index: 1;
         }
 
-        /* Movement arrow indicator */
         .movement-indicator {
             height: 24px;
             display: flex;
@@ -105,18 +138,16 @@
             transition: opacity 0.2s;
         }
 
-        .movement-indicator.visible {
-            opacity: 1;
-        }
+        .movement-indicator.visible { opacity: 1; }
 
-        /* === Frame Calc Card === */
+        /* === Calc Card === */
         .calc-card {
             background: #fafafa;
             border: 1.5px solid #e5e5e5;
             border-radius: 10px;
             padding: 16px 20px;
             margin-bottom: 16px;
-            min-height: 120px;
+            min-height: 100px;
         }
 
         .calc-header {
@@ -139,15 +170,9 @@
             border-radius: 12px;
         }
 
-        .badge-30 {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .badge-60 {
-            background: #eff6ff;
-            color: #2563eb;
-        }
+        .badge-30 { background: #fef3c7; color: #b45309; }
+        .badge-60 { background: #eff6ff; color: #2563eb; }
+        .badge-var { background: #fce7f3; color: #be185d; }
 
         .calc-body {
             font-family: 'Courier New', monospace;
@@ -155,24 +180,10 @@
             line-height: 2;
         }
 
-        .calc-line {
-            color: #555;
-        }
-
-        .calc-val {
-            font-weight: 700;
-            color: #2563eb;
-        }
-
-        .calc-op {
-            color: #f59e0b;
-            font-weight: 700;
-        }
-
-        .calc-result {
-            color: #be185d;
-            font-weight: 700;
-        }
+        .calc-line { color: #555; }
+        .calc-val { font-weight: 700; color: #2563eb; }
+        .calc-op { color: #f59e0b; font-weight: 700; }
+        .calc-result { color: #be185d; font-weight: 700; }
 
         .calc-placeholder {
             font-size: 15px;
@@ -227,6 +238,7 @@
             gap: 8px;
             justify-content: center;
             margin-bottom: 16px;
+            flex-wrap: wrap;
         }
 
         .ctrl-btn {
@@ -253,9 +265,7 @@
             color: #fff;
         }
 
-        .ctrl-btn.primary:hover {
-            background: #1d4ed8;
-        }
+        .ctrl-btn.primary:hover { background: #1d4ed8; }
 
         .ctrl-btn:disabled {
             opacity: 0.4;
@@ -327,14 +337,11 @@
             color: #2563eb;
         }
 
-        tr.current-row {
-            background: #eff6ff;
-        }
-
-        tr.current-row td {
-            color: #1e40af;
-            font-weight: 600;
-        }
+        tr.current-row { background: #eff6ff; }
+        tr.current-row td { color: #1e40af; font-weight: 600; }
+        tr.spike-row { background: #fff1f2; }
+        tr.spike-row td { color: #be185d; }
+        tr.spike-row.current-row { background: #fce7f3; }
 
         /* === Progress Bar === */
         .progress-info {
@@ -357,22 +364,145 @@
             height: 100%;
             background: #2563eb;
             border-radius: 3px;
-            transition: width 0.2s;
+            transition: width 0.15s;
         }
 
-        /* === Footer === */
-        .footer {
+        /* === Footer / Note === */
+        .note-box {
             text-align: center;
             font-size: 14px;
             color: #666;
             padding: 14px 16px;
-            background: #fffbeb;
-            border: 1.5px solid #f59e0b;
             border-radius: 8px;
             line-height: 1.6;
         }
 
-        .footer strong { color: #333; }
+        .note-box strong { color: #333; }
+
+        .note-amber {
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+        }
+
+        .note-pink {
+            background: #fdf2f8;
+            border: 1.5px solid #be185d;
+        }
+
+        .note-blue {
+            background: #eff6ff;
+            border: 1.5px solid #2563eb;
+        }
+
+        /* === Tab 3: Fast Playback === */
+        .dual-track {
+            margin-bottom: 20px;
+        }
+
+        .dual-track-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .dual-label {
+            width: 70px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .dual-label.c30 { color: #b45309; }
+        .dual-label.c60 { color: #2563eb; }
+
+        .dual-track-bar {
+            flex: 1;
+            position: relative;
+            height: 36px;
+            background: #f3f4f6;
+            border-radius: 18px;
+            border: 1.5px solid #e5e5e5;
+            overflow: hidden;
+        }
+
+        .dual-fill {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            border-radius: 18px;
+            transition: width 0.05s linear;
+        }
+
+        .dual-fill.f30 { background: linear-gradient(90deg, #fef3c7, #fde68a); }
+        .dual-fill.f60 { background: linear-gradient(90deg, #dbeafe, #bfdbfe); }
+
+        .dual-ball {
+            position: absolute;
+            top: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            z-index: 2;
+            transition: left 0.05s linear;
+        }
+
+        .dual-ball.b30 {
+            background: #f59e0b;
+            box-shadow: 0 2px 6px rgba(245,158,11,0.3);
+        }
+
+        .dual-ball.b60 {
+            background: #2563eb;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+        }
+
+        .dual-counter {
+            width: 90px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .fast-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .result-card {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: center;
+            min-height: 60px;
+        }
+
+        .result-card .highlight {
+            font-weight: 700;
+            color: #be185d;
+        }
+
+        /* === Variable Frame Presets === */
+        .var-scenario {
+            font-size: 13px;
+            color: #555;
+            padding: 10px 14px;
+            background: #fdf2f8;
+            border: 1px solid #f9a8d4;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .var-scenario strong { color: #be185d; }
     </style>
 </head>
 <body>
@@ -382,278 +512,602 @@
             <p>매 프레임의 계산을 하나씩 들여다봅니다</p>
         </div>
 
-        <!-- Track -->
-        <div class="track-section">
-            <div class="track-labels">
-                <span>A (출발)</span>
-                <span>B (도착)</span>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-step">프레임별 분석</button>
+            <button class="tab-btn" data-tab="tab-var">가변 프레임</button>
+            <button class="tab-btn" data-tab="tab-fast">빠르게 재생</button>
+        </div>
+
+        <!-- ==================== TAB 1: 프레임별 분석 ==================== -->
+        <div id="tab-step" class="tab-content active">
+            <div class="track-section">
+                <div class="track-labels">
+                    <span>A (출발)</span>
+                    <span>B (도착)</span>
+                </div>
+                <div class="track">
+                    <div class="track-fill" id="t1-fill"></div>
+                    <div class="track-ball" id="t1-ball" style="left:4px;"></div>
+                    <div class="track-target"></div>
+                </div>
+                <div class="movement-indicator" id="t1-move">→ +10.0</div>
             </div>
-            <div class="track">
-                <div class="track-fill" id="trackFill"></div>
-                <div class="track-ball" id="trackBall" style="left: 4px;"></div>
-                <div class="track-target"></div>
+
+            <div class="progress-info">
+                <span id="t1-pFrames">프레임: 0 / 30</span>
+                <span id="t1-pTime">경과: 0.000초</span>
             </div>
-            <div class="movement-indicator" id="moveIndicator">→ +10.0</div>
-        </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="t1-pFill" style="width:0%"></div>
+            </div>
 
-        <!-- Progress -->
-        <div class="progress-info">
-            <span id="progressFrames">프레임: 0 / 30</span>
-            <span id="progressTime">경과: 0.000초</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-        </div>
+            <div class="calc-card" id="t1-calc">
+                <div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>
+            </div>
 
-        <!-- Calc Card -->
-        <div class="calc-card" id="calcCard">
-            <div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>
-        </div>
+            <div class="fps-toggle">
+                <button class="fps-btn active" data-fps="30">
+                    <span class="fps-color" style="background:#f59e0b;"></span>30fps
+                </button>
+                <button class="fps-btn" data-fps="60">
+                    <span class="fps-color" style="background:#2563eb;"></span>60fps
+                </button>
+            </div>
 
-        <!-- FPS Toggle -->
-        <div class="fps-toggle">
-            <button class="fps-btn active" data-fps="30">
-                <span class="fps-color" style="background: #f59e0b;"></span>30fps
-            </button>
-            <button class="fps-btn" data-fps="60">
-                <span class="fps-color" style="background: #2563eb;"></span>60fps
-            </button>
-        </div>
+            <div class="controls">
+                <button class="ctrl-btn" id="t1-prev" disabled>◀ 이전</button>
+                <button class="ctrl-btn primary" id="t1-next">다음 프레임 ▶</button>
+                <button class="ctrl-btn" id="t1-auto">⏯ 자동 재생</button>
+                <button class="ctrl-btn" id="t1-reset">리셋</button>
+            </div>
 
-        <!-- Controls -->
-        <div class="controls">
-            <button class="ctrl-btn" id="prevBtn" disabled>◀ 이전</button>
-            <button class="ctrl-btn primary" id="nextBtn">다음 프레임 ▶</button>
-            <button class="ctrl-btn" id="autoBtn">⏯ 자동 재생</button>
-            <button class="ctrl-btn" id="resetBtn">리셋</button>
-        </div>
+            <div class="log-section">
+                <div class="log-label">프레임 로그</div>
+                <div class="log-table-wrap" id="t1-logWrap">
+                    <table>
+                        <thead><tr><th>#</th><th>DeltaTime</th><th>이동량</th><th>누적 위치</th></tr></thead>
+                        <tbody id="t1-logBody"></tbody>
+                    </table>
+                </div>
+            </div>
 
-        <!-- Frame Log -->
-        <div class="log-section">
-            <div class="log-label">프레임 로그</div>
-            <div class="log-table-wrap" id="logWrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>DeltaTime</th>
-                            <th>이동량</th>
-                            <th>누적 위치</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logBody">
-                    </tbody>
-                </table>
+            <div class="note-box note-amber">
+                <strong>30fps = 프레임 적지만 한 번에 많이 이동</strong><br>
+                <strong>60fps = 프레임 많지만 한 번에 조금 이동</strong><br>
+                → 결과: 같은 시간에 같은 거리!
             </div>
         </div>
 
-        <div class="footer">
-            <strong>30fps = 프레임 적지만 한 번에 많이 이동</strong><br>
-            <strong>60fps = 프레임 많지만 한 번에 조금 이동</strong><br>
-            → 결과: 같은 시간에 같은 거리!
+        <!-- ==================== TAB 2: 가변 프레임 ==================== -->
+        <div id="tab-var" class="tab-content">
+            <div class="var-scenario">
+                <strong>시나리오:</strong> 게임 중 프레임이 불안정합니다.
+                어떤 프레임은 빠르고 (60fps), 어떤 프레임은 렉이 걸립니다 (10fps).
+                DeltaTime 덕분에 <strong>결과는 동일</strong>합니다.
+            </div>
+
+            <div class="track-section">
+                <div class="track-labels">
+                    <span>A (출발)</span>
+                    <span>B (도착)</span>
+                </div>
+                <div class="track">
+                    <div class="track-fill" id="t2-fill"></div>
+                    <div class="track-ball" id="t2-ball" style="left:4px;"></div>
+                    <div class="track-target"></div>
+                </div>
+                <div class="movement-indicator" id="t2-move">→ +10.0</div>
+            </div>
+
+            <div class="progress-info">
+                <span id="t2-pFrames">프레임: 0 / ?</span>
+                <span id="t2-pTime">경과: 0.000초</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="t2-pFill" style="width:0%"></div>
+            </div>
+
+            <div class="calc-card" id="t2-calc">
+                <div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>
+            </div>
+
+            <div class="controls">
+                <button class="ctrl-btn" id="t2-prev" disabled>◀ 이전</button>
+                <button class="ctrl-btn primary" id="t2-next">다음 프레임 ▶</button>
+                <button class="ctrl-btn" id="t2-auto">⏯ 자동 재생</button>
+                <button class="ctrl-btn" id="t2-reset">리셋</button>
+            </div>
+
+            <div class="log-section">
+                <div class="log-label">프레임 로그 (가변 DeltaTime)</div>
+                <div class="log-table-wrap" id="t2-logWrap">
+                    <table>
+                        <thead><tr><th>#</th><th>DeltaTime</th><th>FPS 환산</th><th>이동량</th><th>누적 위치</th></tr></thead>
+                        <tbody id="t2-logBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="note-box note-pink">
+                <strong>프레임이 느릴수록 dt가 커지고, 한 번에 더 많이 이동</strong><br>
+                <strong>프레임이 빠를수록 dt가 작고, 한 번에 조금 이동</strong><br>
+                → DeltaTime이 프레임 속도 차이를 <strong>자동 보정</strong>합니다
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: 빠르게 재생 ==================== -->
+        <div id="tab-fast" class="tab-content">
+            <div class="dual-track">
+                <div class="dual-track-row">
+                    <div class="dual-label c30">30fps</div>
+                    <div class="dual-track-bar">
+                        <div class="dual-fill f30" id="t3-fill30" style="width:0%"></div>
+                        <div class="dual-ball b30" id="t3-ball30" style="left:4px"></div>
+                    </div>
+                    <div class="dual-counter" id="t3-count30">0 / 30</div>
+                </div>
+                <div class="dual-track-row">
+                    <div class="dual-label c60">60fps</div>
+                    <div class="dual-track-bar">
+                        <div class="dual-fill f60" id="t3-fill60" style="width:0%"></div>
+                        <div class="dual-ball b60" id="t3-ball60" style="left:4px"></div>
+                    </div>
+                    <div class="dual-counter" id="t3-count60">0 / 60</div>
+                </div>
+            </div>
+
+            <div class="progress-info">
+                <span id="t3-elapsed">경과: 0.000초</span>
+                <span id="t3-total">총 1.000초</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="t3-pFill" style="width:0%"></div>
+            </div>
+
+            <div class="result-card" id="t3-result">
+                ▶ 재생을 누르면 30fps와 60fps를 동시에 비교합니다
+            </div>
+
+            <div class="fast-controls">
+                <button class="ctrl-btn primary" id="t3-play">▶ 재생</button>
+                <button class="ctrl-btn" id="t3-resetBtn">리셋</button>
+            </div>
+
+            <div class="note-box note-blue">
+                <strong>프레임 갱신 횟수는 다르지만, 같은 시간에 같은 거리</strong><br>
+                30fps: 큰 점프 × 적은 횟수 = 300<br>
+                60fps: 작은 점프 × 많은 횟수 = 300
+            </div>
         </div>
     </div>
 
     <script>
-        // === Constants ===
-        const SPEED = 300;        // 300 units/sec
-        const DISTANCE = 300;     // A→B total distance
-        const TRACK_PX = 660;     // usable track pixels (700 - padding - ball)
+        // ========================
+        //  공통
+        // ========================
+        const SPEED = 300;
+        const DISTANCE = 300;
 
-        // === State ===
-        let fps = 30;
-        let dt = 1 / fps;
-        let frameIndex = 0;       // current frame (0 = start, not yet stepped)
-        let totalFrames = 0;      // how many frames needed
-        let position = 0;
-        let logs = [];            // { frame, dt, movement, position }
-        let autoPlaying = false;
-        let autoTimer = null;
-
-        function calcTotalFrames() {
-            return Math.ceil(DISTANCE / (SPEED * dt));
+        function getTrackW(trackEl) {
+            return trackEl.offsetWidth;
         }
 
-        // === DOM ===
-        const trackBall = document.getElementById('trackBall');
-        const trackFill = document.getElementById('trackFill');
-        const moveIndicator = document.getElementById('moveIndicator');
-        const calcCard = document.getElementById('calcCard');
-        const logBody = document.getElementById('logBody');
-        const logWrap = document.getElementById('logWrap');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const autoBtn = document.getElementById('autoBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const progressFrames = document.getElementById('progressFrames');
-        const progressTime = document.getElementById('progressTime');
-        const progressFill = document.getElementById('progressFill');
+        function ballLeft(pos, ballEl) {
+            const pct = Math.min(pos / DISTANCE, 1);
+            const tw = ballEl.parentElement.offsetWidth;
+            // ball 32px wide, target 24px wide at right:8px
+            // at pct=1 ball left edge should be at tw - 8 - 24 - 4 = tw - 36
+            return 4 + pct * (tw - 40);
+        }
 
-        // === Render ===
-        function render() {
-            const pct = Math.min(position / DISTANCE, 1);
-            const ballLeft = 4 + pct * (TRACK_PX - 36);
-            trackBall.style.left = ballLeft + 'px';
-            trackFill.style.width = (pct * 100) + '%';
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
 
-            // Progress
-            progressFrames.textContent = `프레임: ${frameIndex} / ${totalFrames}`;
-            progressTime.textContent = `경과: ${(frameIndex * dt).toFixed(3)}초`;
-            progressFill.style.width = (Math.min(frameIndex / totalFrames, 1) * 100) + '%';
+        // ========================
+        //  TAB 1: 프레임별 분석
+        // ========================
+        const t1 = {
+            fps: 30, dt: 1/30, frame: 0, pos: 0,
+            totalFrames: 30, logs: [],
+            autoPlaying: false, autoTimer: null
+        };
 
-            // Calc card
-            if (frameIndex === 0) {
-                calcCard.innerHTML = '<div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>';
+        const t1El = {
+            ball: document.getElementById('t1-ball'),
+            fill: document.getElementById('t1-fill'),
+            move: document.getElementById('t1-move'),
+            calc: document.getElementById('t1-calc'),
+            pFrames: document.getElementById('t1-pFrames'),
+            pTime: document.getElementById('t1-pTime'),
+            pFill: document.getElementById('t1-pFill'),
+            logBody: document.getElementById('t1-logBody'),
+            logWrap: document.getElementById('t1-logWrap'),
+            prev: document.getElementById('t1-prev'),
+            next: document.getElementById('t1-next'),
+            auto: document.getElementById('t1-auto'),
+            reset: document.getElementById('t1-reset')
+        };
+
+        function t1Render() {
+            const pct = Math.min(t1.pos / DISTANCE, 1);
+            t1El.ball.style.left = ballLeft(t1.pos, t1El.ball) + 'px';
+            t1El.fill.style.width = (pct * 100) + '%';
+            t1El.pFrames.textContent = `프레임: ${t1.frame} / ${t1.totalFrames}`;
+            t1El.pTime.textContent = `경과: ${(t1.frame * t1.dt).toFixed(3)}초`;
+            t1El.pFill.style.width = (Math.min(t1.frame / t1.totalFrames, 1) * 100) + '%';
+
+            if (t1.frame === 0) {
+                t1El.calc.innerHTML = '<div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>';
             } else {
-                const log = logs[frameIndex - 1];
-                const prevPos = frameIndex >= 2 ? logs[frameIndex - 2].position : 0;
-                const fpsClass = fps === 30 ? 'badge-30' : 'badge-60';
-                calcCard.innerHTML = `
+                const log = t1.logs[t1.frame - 1];
+                const prev = t1.frame >= 2 ? t1.logs[t1.frame - 2].position : 0;
+                const cls = t1.fps === 30 ? 'badge-30' : 'badge-60';
+                t1El.calc.innerHTML = `
                     <div class="calc-header">
                         <div class="calc-frame">Frame ${log.frame}</div>
-                        <div class="calc-fps-badge ${fpsClass}">${fps}fps</div>
+                        <div class="calc-fps-badge ${cls}">${t1.fps}fps</div>
                     </div>
                     <div class="calc-body">
-                        <div class="calc-line">DeltaTime = <span class="calc-val">1/${fps} = ${log.dt.toFixed(4)}초</span></div>
+                        <div class="calc-line">DeltaTime = <span class="calc-val">1/${t1.fps} = ${log.dt.toFixed(4)}초</span></div>
                         <div class="calc-line">이동량 = <span class="calc-val">${SPEED}</span> <span class="calc-op">×</span> <span class="calc-val">${log.dt.toFixed(4)}</span> = <span class="calc-result">${log.movement.toFixed(1)}</span></div>
-                        <div class="calc-line">위치: ${prevPos.toFixed(1)} → <span class="calc-result">${log.position.toFixed(1)}</span></div>
-                    </div>
-                `;
+                        <div class="calc-line">위치: ${prev.toFixed(1)} → <span class="calc-result">${log.position.toFixed(1)}</span></div>
+                    </div>`;
             }
 
-            // Movement indicator
-            if (frameIndex > 0) {
-                const mov = logs[frameIndex - 1].movement;
-                moveIndicator.textContent = `→ +${mov.toFixed(1)}`;
-                moveIndicator.classList.add('visible');
+            if (t1.frame > 0) {
+                t1El.move.textContent = `→ +${t1.logs[t1.frame - 1].movement.toFixed(1)}`;
+                t1El.move.classList.add('visible');
             } else {
-                moveIndicator.classList.remove('visible');
+                t1El.move.classList.remove('visible');
             }
 
-            // Log table
-            logBody.innerHTML = logs.map((log, i) => `
-                <tr class="${i === frameIndex - 1 ? 'current-row' : ''}">
-                    <td>${log.frame}</td>
-                    <td>${log.dt.toFixed(4)}</td>
-                    <td>${log.movement.toFixed(1)}</td>
-                    <td>${log.position.toFixed(1)}</td>
-                </tr>
-            `).join('');
+            t1El.logBody.innerHTML = t1.logs.map((l, i) => `
+                <tr class="${i === t1.frame - 1 ? 'current-row' : ''}">
+                    <td>${l.frame}</td><td>${l.dt.toFixed(4)}</td>
+                    <td>${l.movement.toFixed(1)}</td><td>${l.position.toFixed(1)}</td>
+                </tr>`).join('');
+            t1El.logWrap.scrollTop = t1El.logWrap.scrollHeight;
 
-            // Auto-scroll log
-            logWrap.scrollTop = logWrap.scrollHeight;
-
-            // Button states
-            prevBtn.disabled = frameIndex <= 0;
-            const arrived = position >= DISTANCE;
-            nextBtn.disabled = arrived;
-            if (arrived && autoPlaying) stopAuto();
+            t1El.prev.disabled = t1.frame <= 0;
+            const arrived = t1.pos >= DISTANCE;
+            t1El.next.disabled = arrived;
+            if (arrived && t1.autoPlaying) t1StopAuto();
         }
 
-        // === Step Forward ===
-        function stepForward() {
-            if (position >= DISTANCE) return;
-
-            frameIndex++;
-            const movement = Math.min(SPEED * dt, DISTANCE - position);
-            position += movement;
-
-            logs.push({
-                frame: frameIndex,
-                dt: dt,
-                movement: movement,
-                position: position
-            });
-
-            render();
+        function t1Step() {
+            if (t1.pos >= DISTANCE) return;
+            t1.frame++;
+            const mov = Math.min(SPEED * t1.dt, DISTANCE - t1.pos);
+            t1.pos += mov;
+            t1.logs.push({ frame: t1.frame, dt: t1.dt, movement: mov, position: t1.pos });
+            t1Render();
         }
 
-        // === Step Backward ===
-        function stepBackward() {
-            if (frameIndex <= 0) return;
-
-            logs.pop();
-            frameIndex--;
-
-            if (frameIndex === 0) {
-                position = 0;
-            } else {
-                position = logs[frameIndex - 1].position;
-            }
-
-            render();
+        function t1Back() {
+            if (t1.frame <= 0) return;
+            t1.logs.pop(); t1.frame--;
+            t1.pos = t1.frame === 0 ? 0 : t1.logs[t1.frame - 1].position;
+            t1Render();
         }
 
-        // === Reset ===
-        function resetSim() {
-            stopAuto();
-            frameIndex = 0;
-            position = 0;
-            logs = [];
-            totalFrames = calcTotalFrames();
-            render();
+        function t1Reset() {
+            t1StopAuto();
+            t1.frame = 0; t1.pos = 0; t1.logs = [];
+            t1.totalFrames = Math.ceil(DISTANCE / (SPEED * t1.dt));
+            t1Render();
         }
 
-        // === Auto Play ===
-        function startAuto() {
-            autoPlaying = true;
-            autoBtn.textContent = '⏸ 정지';
-            autoBtn.classList.add('auto-on');
-            autoTimer = setInterval(() => {
-                if (position >= DISTANCE) {
-                    stopAuto();
-                    return;
-                }
-                stepForward();
-            }, 800); // slow-motion: 1 frame per 0.8s
+        function t1StartAuto() {
+            t1.autoPlaying = true;
+            t1El.auto.textContent = '⏸ 정지';
+            t1El.auto.classList.add('auto-on');
+            t1.autoTimer = setInterval(() => {
+                if (t1.pos >= DISTANCE) { t1StopAuto(); return; }
+                t1Step();
+            }, 800);
         }
 
-        function stopAuto() {
-            autoPlaying = false;
-            autoBtn.textContent = '⏯ 자동 재생';
-            autoBtn.classList.remove('auto-on');
-            if (autoTimer) {
-                clearInterval(autoTimer);
-                autoTimer = null;
-            }
+        function t1StopAuto() {
+            t1.autoPlaying = false;
+            t1El.auto.textContent = '⏯ 자동 재생';
+            t1El.auto.classList.remove('auto-on');
+            if (t1.autoTimer) { clearInterval(t1.autoTimer); t1.autoTimer = null; }
         }
 
-        // === Events ===
-        nextBtn.addEventListener('click', () => {
-            stopAuto();
-            stepForward();
+        t1El.next.addEventListener('click', () => { t1StopAuto(); t1Step(); });
+        t1El.prev.addEventListener('click', () => { t1StopAuto(); t1Back(); });
+        t1El.auto.addEventListener('click', () => {
+            if (t1.autoPlaying) t1StopAuto();
+            else { if (t1.pos >= DISTANCE) t1Reset(); t1StartAuto(); }
         });
+        t1El.reset.addEventListener('click', t1Reset);
 
-        prevBtn.addEventListener('click', () => {
-            stopAuto();
-            stepBackward();
-        });
-
-        autoBtn.addEventListener('click', () => {
-            if (autoPlaying) {
-                stopAuto();
-            } else {
-                if (position >= DISTANCE) resetSim();
-                startAuto();
-            }
-        });
-
-        resetBtn.addEventListener('click', resetSim);
-
-        // FPS toggle
         document.querySelectorAll('.fps-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.fps-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                fps = parseInt(btn.dataset.fps);
-                dt = 1 / fps;
-                resetSim();
+                t1.fps = parseInt(btn.dataset.fps);
+                t1.dt = 1 / t1.fps;
+                t1Reset();
             });
         });
 
-        // === Init ===
-        totalFrames = calcTotalFrames();
-        render();
+        t1.totalFrames = Math.ceil(DISTANCE / (SPEED * t1.dt));
+        t1Render();
+
+        // ========================
+        //  TAB 2: 가변 프레임
+        // ========================
+        // Pre-defined variable dt sequence (realistic stutter pattern)
+        const varDts = [
+            0.033, 0.016, 0.016, 0.050, 0.033, 0.100, 0.016, 0.033,
+            0.016, 0.016, 0.033, 0.066, 0.016, 0.033, 0.016, 0.050,
+            0.033, 0.016, 0.100, 0.033, 0.016, 0.016, 0.033, 0.016,
+            0.050, 0.033, 0.016, 0.016, 0.033, 0.066, 0.016, 0.033
+        ];
+
+        const t2 = {
+            frame: 0, pos: 0, logs: [],
+            autoPlaying: false, autoTimer: null,
+            dtIndex: 0
+        };
+
+        const t2El = {
+            ball: document.getElementById('t2-ball'),
+            fill: document.getElementById('t2-fill'),
+            move: document.getElementById('t2-move'),
+            calc: document.getElementById('t2-calc'),
+            pFrames: document.getElementById('t2-pFrames'),
+            pTime: document.getElementById('t2-pTime'),
+            pFill: document.getElementById('t2-pFill'),
+            logBody: document.getElementById('t2-logBody'),
+            logWrap: document.getElementById('t2-logWrap'),
+            prev: document.getElementById('t2-prev'),
+            next: document.getElementById('t2-next'),
+            auto: document.getElementById('t2-auto'),
+            reset: document.getElementById('t2-reset')
+        };
+
+        function t2Elapsed() {
+            return t2.logs.reduce((s, l) => s + l.dt, 0);
+        }
+
+        function t2Render() {
+            const pct = Math.min(t2.pos / DISTANCE, 1);
+            t2El.ball.style.left = ballLeft(t2.pos, t2El.ball) + 'px';
+            t2El.fill.style.width = (pct * 100) + '%';
+            t2El.pFrames.textContent = `프레임: ${t2.frame}`;
+            t2El.pTime.textContent = `경과: ${t2Elapsed().toFixed(3)}초`;
+            t2El.pFill.style.width = (pct * 100) + '%';
+
+            if (t2.frame === 0) {
+                t2El.calc.innerHTML = '<div class="calc-placeholder">"다음 프레임" 버튼을 눌러 시작하세요</div>';
+            } else {
+                const log = t2.logs[t2.frame - 1];
+                const prev = t2.frame >= 2 ? t2.logs[t2.frame - 2].position : 0;
+                const fpsEquiv = Math.round(1 / log.dt);
+                const isSpike = log.dt >= 0.050;
+                t2El.calc.innerHTML = `
+                    <div class="calc-header">
+                        <div class="calc-frame">Frame ${log.frame}${isSpike ? ' ⚠️ 렉!' : ''}</div>
+                        <div class="calc-fps-badge badge-var">${fpsEquiv}fps 구간</div>
+                    </div>
+                    <div class="calc-body">
+                        <div class="calc-line">DeltaTime = <span class="calc-val">${log.dt.toFixed(3)}초</span>${isSpike ? ' <span style="color:#be185d;font-size:12px">(느린 프레임)</span>' : ''}</div>
+                        <div class="calc-line">이동량 = <span class="calc-val">${SPEED}</span> <span class="calc-op">×</span> <span class="calc-val">${log.dt.toFixed(3)}</span> = <span class="calc-result">${log.movement.toFixed(1)}</span></div>
+                        <div class="calc-line">위치: ${prev.toFixed(1)} → <span class="calc-result">${log.position.toFixed(1)}</span></div>
+                    </div>`;
+            }
+
+            if (t2.frame > 0) {
+                t2El.move.textContent = `→ +${t2.logs[t2.frame - 1].movement.toFixed(1)}`;
+                t2El.move.classList.add('visible');
+            } else {
+                t2El.move.classList.remove('visible');
+            }
+
+            t2El.logBody.innerHTML = t2.logs.map((l, i) => {
+                const fpsE = Math.round(1 / l.dt);
+                const isSpike = l.dt >= 0.050;
+                const cls = [i === t2.frame - 1 ? 'current-row' : '', isSpike ? 'spike-row' : ''].join(' ').trim();
+                return `<tr class="${cls}">
+                    <td>${l.frame}</td><td>${l.dt.toFixed(3)}</td><td>${fpsE}</td>
+                    <td>${l.movement.toFixed(1)}</td><td>${l.position.toFixed(1)}</td>
+                </tr>`;
+            }).join('');
+            t2El.logWrap.scrollTop = t2El.logWrap.scrollHeight;
+
+            t2El.prev.disabled = t2.frame <= 0;
+            const arrived = t2.pos >= DISTANCE;
+            t2El.next.disabled = arrived;
+            if (arrived && t2.autoPlaying) t2StopAuto();
+        }
+
+        function t2Step() {
+            if (t2.pos >= DISTANCE) return;
+            const cdt = varDts[t2.dtIndex % varDts.length];
+            t2.dtIndex++;
+            t2.frame++;
+            const mov = Math.min(SPEED * cdt, DISTANCE - t2.pos);
+            t2.pos += mov;
+            t2.logs.push({ frame: t2.frame, dt: cdt, movement: mov, position: t2.pos });
+            t2Render();
+        }
+
+        function t2Back() {
+            if (t2.frame <= 0) return;
+            t2.logs.pop(); t2.frame--; t2.dtIndex--;
+            t2.pos = t2.frame === 0 ? 0 : t2.logs[t2.frame - 1].position;
+            t2Render();
+        }
+
+        function t2Reset() {
+            t2StopAuto();
+            t2.frame = 0; t2.pos = 0; t2.logs = []; t2.dtIndex = 0;
+            t2Render();
+        }
+
+        function t2StartAuto() {
+            t2.autoPlaying = true;
+            t2El.auto.textContent = '⏸ 정지';
+            t2El.auto.classList.add('auto-on');
+            t2.autoTimer = setInterval(() => {
+                if (t2.pos >= DISTANCE) { t2StopAuto(); return; }
+                t2Step();
+            }, 800);
+        }
+
+        function t2StopAuto() {
+            t2.autoPlaying = false;
+            t2El.auto.textContent = '⏯ 자동 재생';
+            t2El.auto.classList.remove('auto-on');
+            if (t2.autoTimer) { clearInterval(t2.autoTimer); t2.autoTimer = null; }
+        }
+
+        t2El.next.addEventListener('click', () => { t2StopAuto(); t2Step(); });
+        t2El.prev.addEventListener('click', () => { t2StopAuto(); t2Back(); });
+        t2El.auto.addEventListener('click', () => {
+            if (t2.autoPlaying) t2StopAuto();
+            else { if (t2.pos >= DISTANCE) t2Reset(); t2StartAuto(); }
+        });
+        t2El.reset.addEventListener('click', t2Reset);
+        t2Render();
+
+        // ========================
+        //  TAB 3: 빠르게 재생
+        // ========================
+        const SIM_TIME = 1.0;  // 1 second of game time
+        const PLAY_DURATION = 2000;  // 2 seconds real time for playback
+        const FRAMES_30 = 30;
+        const FRAMES_60 = 60;
+
+        const t3El = {
+            ball30: document.getElementById('t3-ball30'),
+            ball60: document.getElementById('t3-ball60'),
+            fill30: document.getElementById('t3-fill30'),
+            fill60: document.getElementById('t3-fill60'),
+            count30: document.getElementById('t3-count30'),
+            count60: document.getElementById('t3-count60'),
+            elapsed: document.getElementById('t3-elapsed'),
+            total: document.getElementById('t3-total'),
+            pFill: document.getElementById('t3-pFill'),
+            result: document.getElementById('t3-result'),
+            play: document.getElementById('t3-play'),
+            reset: document.getElementById('t3-resetBtn')
+        };
+
+        let t3Playing = false;
+        let t3Raf = null;
+
+        function t3BallLeft(pos, ballEl) {
+            const pct = Math.min(pos / DISTANCE, 1);
+            const barW = ballEl.parentElement.offsetWidth || 500;
+            return 4 + pct * (barW - 36);
+        }
+
+        function t3Reset() {
+            if (t3Raf) { cancelAnimationFrame(t3Raf); t3Raf = null; }
+            t3Playing = false;
+            t3El.play.textContent = '▶ 재생';
+            t3El.play.disabled = false;
+            t3El.ball30.style.left = '4px';
+            t3El.ball60.style.left = '4px';
+            t3El.fill30.style.width = '0%';
+            t3El.fill60.style.width = '0%';
+            t3El.count30.textContent = `0 / ${FRAMES_30}`;
+            t3El.count60.textContent = `0 / ${FRAMES_60}`;
+            t3El.elapsed.textContent = '경과: 0.000초';
+            t3El.pFill.style.width = '0%';
+            t3El.result.innerHTML = '▶ 재생을 누르면 30fps와 60fps를 동시에 비교합니다';
+        }
+
+        function t3Play() {
+            if (t3Playing) return;
+            t3Reset();
+            t3Playing = true;
+            t3El.play.textContent = '재생 중…';
+            t3El.play.disabled = true;
+
+            const dt30 = 1 / FRAMES_30;
+            const dt60 = 1 / FRAMES_60;
+            const mov30 = SPEED * dt30;  // 10
+            const mov60 = SPEED * dt60;  // 5
+
+            // Real-time interval per frame update
+            const interval30 = PLAY_DURATION / FRAMES_30;  // ms between 30fps updates
+            const interval60 = PLAY_DURATION / FRAMES_60;  // ms between 60fps updates
+
+            let pos30 = 0, pos60 = 0;
+            let f30 = 0, f60 = 0;
+            let next30 = 0, next60 = 0;
+            const t0 = performance.now();
+
+            function tick(now) {
+                const elapsed = now - t0;
+                const simTime = Math.min((elapsed / PLAY_DURATION) * SIM_TIME, SIM_TIME);
+
+                // Update 30fps track
+                while (f30 < FRAMES_30 && elapsed >= next30) {
+                    f30++;
+                    pos30 = Math.min(pos30 + mov30, DISTANCE);
+                    next30 = f30 * interval30;
+                }
+
+                // Update 60fps track
+                while (f60 < FRAMES_60 && elapsed >= next60) {
+                    f60++;
+                    pos60 = Math.min(pos60 + mov60, DISTANCE);
+                    next60 = f60 * interval60;
+                }
+
+                // Render
+                const pct30 = Math.min(pos30 / DISTANCE, 1);
+                const pct60 = Math.min(pos60 / DISTANCE, 1);
+                t3El.ball30.style.left = t3BallLeft(pos30, t3El.ball30) + 'px';
+                t3El.ball60.style.left = t3BallLeft(pos60, t3El.ball60) + 'px';
+                t3El.fill30.style.width = (pct30 * 100) + '%';
+                t3El.fill60.style.width = (pct60 * 100) + '%';
+                t3El.count30.textContent = `${f30} / ${FRAMES_30}`;
+                t3El.count60.textContent = `${f60} / ${FRAMES_60}`;
+                t3El.elapsed.textContent = `경과: ${simTime.toFixed(3)}초`;
+                t3El.pFill.style.width = (Math.min(elapsed / PLAY_DURATION, 1) * 100) + '%';
+
+                if (elapsed < PLAY_DURATION) {
+                    t3Raf = requestAnimationFrame(tick);
+                } else {
+                    // Final state
+                    t3El.ball30.style.left = t3BallLeft(DISTANCE, t3El.ball30) + 'px';
+                    t3El.ball60.style.left = t3BallLeft(DISTANCE, t3El.ball60) + 'px';
+                    t3El.fill30.style.width = '100%';
+                    t3El.fill60.style.width = '100%';
+                    t3El.count30.textContent = `${FRAMES_30} / ${FRAMES_30}`;
+                    t3El.count60.textContent = `${FRAMES_60} / ${FRAMES_60}`;
+                    t3El.pFill.style.width = '100%';
+                    t3El.elapsed.textContent = `경과: ${SIM_TIME.toFixed(3)}초`;
+                    t3Playing = false;
+                    t3El.play.textContent = '▶ 다시 재생';
+                    t3El.play.disabled = false;
+                    t3El.result.innerHTML = `
+                        30fps: ${SPEED} × ${dt30.toFixed(4)} × ${FRAMES_30}프레임 = <span class="highlight">${DISTANCE}</span><br>
+                        60fps: ${SPEED} × ${dt60.toFixed(4)} × ${FRAMES_60}프레임 = <span class="highlight">${DISTANCE}</span><br>
+                        <strong>프레임 수는 달라도, 결과는 같다!</strong>
+                    `;
+                }
+            }
+
+            t3Raf = requestAnimationFrame(tick);
+        }
+
+        t3El.play.addEventListener('click', t3Play);
+        t3El.reset.addEventListener('click', t3Reset);
     </script>
 </body>
 </html>
