@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멘탈 모델 3단계</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        .diagram {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: 30px;
+        }
+
+        .stage-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stage-card {
+            width: 100%;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 24px 20px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        .stage-card.stage-1 {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
+
+        .stage-card.stage-1::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(148,163,184,0.05) 0%, transparent 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .stage-card.stage-2 {
+            border: 2.5px solid #f59e0b;
+            background: linear-gradient(135deg, #fffbf0 0%, #fafafa 100%);
+        }
+
+        .stage-card.stage-2::after {
+            content: '← 여러분은 지금 여기';
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f59e0b;
+            white-space: nowrap;
+            padding: 4px 10px;
+            background: #fffbf0;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+        }
+
+        .stage-card.stage-3 {
+            border: 2px solid #2563eb;
+            background: linear-gradient(135deg, #eff6ff 0%, #fafafa 100%);
+        }
+
+        .stage-card.stage-3::after {
+            content: '← 오늘 한 번 맛보기';
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2563eb;
+            white-space: nowrap;
+            padding: 4px 10px;
+            background: #eff6ff;
+            border: 1px solid #2563eb;
+            border-radius: 4px;
+        }
+
+        .card-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 12px;
+        }
+
+        .card-number {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-example {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #777;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 6px;
+            border-left: 2px solid #e5e5e5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-example strong {
+            color: #333;
+        }
+
+        .expanded-content {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5e5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .expanded-content.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 8px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #999;
+            font-weight: bold;
+        }
+
+        .arrow-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .arrow {
+            width: 2px;
+            height: 24px;
+            background: #cbd5e1;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid #cbd5e1;
+        }
+
+        .transition-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            margin-top: 4px;
+            line-height: 1.4;
+            max-width: 200px;
+        }
+
+        .transition-1-2 .transition-label {
+            color: #f59e0b;
+        }
+
+        .transition-2-3 {
+            margin-bottom: 0;
+        }
+
+        .transition-2-3 .transition-label {
+            color: #2563eb;
+        }
+
+        .note-box {
+            font-size: 13px;
+            color: #555;
+            background: #fffbf0;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 8px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-message {
+            margin-top: 30px;
+            padding: 16px 18px;
+            background: #f0f9ff;
+            border-left: 3px solid #2563eb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .footer-message strong {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .stage-card.stage-2::after,
+            .stage-card.stage-3::after {
+                position: static;
+                display: inline-block;
+                margin-top: 8px;
+                right: auto;
+                top: auto;
+            }
+
+            .stage-card {
+                padding: 18px 16px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>멘탈 모델 3단계</h1>
+            <p>각 단계를 클릭하면 특징이 펼쳐집니다</p>
+        </div>
+
+        <div class="diagram">
+            <!-- Stage 1 -->
+            <div class="stage-wrapper">
+                <div class="stage-card stage-1" onclick="toggleExpand(this)">
+                    <div class="card-header">
+                        <div class="card-number">Stage 1</div>
+                        <div class="card-title">따라 치는 사람</div>
+                    </div>
+                    <div class="card-description">
+                        코드 복붙, 돌아가면 OK
+                    </div>
+                    <div class="card-example">
+                        <strong>예시:</strong> 튜토리얼 따라하기, 에러나면 구글링
+                    </div>
+                    <div class="expanded-content">
+                        <ul class="feature-list">
+                            <li>코드를 이해하지 않고 복사-붙여넣기로 진행</li>
+                            <li>컴파일 에러 메시지를 읽기보다 구글링</li>
+                            <li>왜 이 코드를 써야 하는지 묻지 않음</li>
+                            <li>프로젝트마다 같은 부분에서 같은 실수 반복</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow 1 to 2 -->
+            <div class="arrow-section transition-1-2">
+                <div class="arrow"></div>
+                <div class="transition-label">반복 경험 — 여러 프로젝트를 만들어보기</div>
+            </div>
+
+            <!-- Stage 2 -->
+            <div class="stage-wrapper">
+                <div class="stage-card stage-2" onclick="toggleExpand(this)">
+                    <div class="card-header">
+                        <div class="card-number">Stage 2</div>
+                        <div class="card-title">도구를 쓸 줄 아는 사람</div>
+                    </div>
+                    <div class="card-description">
+                        CMC, BP 노드 조합. "이걸 쓰면 된다"를 안다
+                    </div>
+                    <div class="card-example">
+                        <strong>예시:</strong> AddMovementInput 호출, 블루프린트 조합
+                    </div>
+                    <div class="expanded-content">
+                        <ul class="feature-list">
+                            <li>공식 문서를 통해 API와 도구를 검색할 수 있음</li>
+                            <li>"이 기능을 만들려면 X 함수를 써야 한다"를 인식</li>
+                            <li>기본 논리 흐름(Input → Logic → Output)을 이해</li>
+                            <li>다양한 프로젝트에 도구 조합을 적용 가능</li>
+                        </ul>
+                        <div class="note-box">
+                            ✓ 대부분의 개발자는 이 단계에서 생산성이 가장 높습니다
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow 2 to 3 -->
+            <div class="arrow-section transition-2-3">
+                <div class="arrow"></div>
+                <div class="transition-label">원리를 직접 만져보기 — 도구를 벗기고 밑바닥을 보는 경험</div>
+            </div>
+
+            <!-- Stage 3 -->
+            <div class="stage-wrapper">
+                <div class="stage-card stage-3" onclick="toggleExpand(this)">
+                    <div class="card-header">
+                        <div class="card-number">Stage 3</div>
+                        <div class="card-title">원리를 아는 사람</div>
+                    </div>
+                    <div class="card-description">
+                        "이 안에서 뭘 하고 있는지" 읽힘. 공식 문서가 읽힌다
+                    </div>
+                    <div class="card-example">
+                        <strong>예시:</strong> DeltaTime 왜 곱하는지, CMC 내부 로직
+                    </div>
+                    <div class="expanded-content">
+                        <ul class="feature-list">
+                            <li>API 내부의 구현 원리를 추적하고 이해</li>
+                            <li>공식 문서의 한 줄짜리 설명이 무엇을 의미하는지 파악</li>
+                            <li>도구 선택의 trade-off를 이해하고 평가</li>
+                            <li>예상 밖의 버그를 체계적으로 진단 가능</li>
+                        </ul>
+                        <div class="note-box">
+                            💡 <strong>3단계는 도달 목표가 아니라, 2단계를 더 잘하기 위한 보조 무기입니다</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-message">
+            <strong>막힐 때 구글링 키워드가 달라집니다</strong><br>
+            1단계: "C++ 에러 메시지" → 2단계: "언리얼 API 함수명" → 3단계: "원리와 내부 동작"
+        </div>
+    </div>
+
+    <script>
+        function toggleExpand(element) {
+            const expandedContent = element.querySelector('.expanded-content');
+            const isActive = expandedContent.classList.contains('active');
+
+            // Close all other expanded contents
+            document.querySelectorAll('.expanded-content.active').forEach(el => {
+                if (el !== expandedContent) {
+                    el.classList.remove('active');
+                }
+            });
+
+            // Toggle current
+            expandedContent.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

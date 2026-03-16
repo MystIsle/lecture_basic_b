@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 배운 것 한 바퀴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        .flow-container {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card-wrapper {
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            border-radius: 14px;
+            border: 2px solid #e5e5e5;
+            background: #fafafa;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-num {
+            display: inline-block;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #64748b;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .card.card-intro .card-num {
+            background: #64748b;
+        }
+
+        .card.card-blue .card-num {
+            background: #2563eb;
+        }
+
+        .card.card-amber .card-num {
+            background: #f59e0b;
+        }
+
+        .card.card-pink .card-num {
+            background: #be185d;
+        }
+
+        .card.card-intro {
+            border-color: #64748b;
+        }
+
+        .card.card-intro.active {
+            background: #f8fafc;
+            border-color: #64748b;
+        }
+
+        .card.card-blue.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        .card.card-amber.active {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .card.card-pink.active {
+            background: #fce7f3;
+            border-color: #be185d;
+        }
+
+        .card-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .card.card-blue .card-label {
+            color: #2563eb;
+        }
+
+        .card.card-amber .card-label {
+            color: #f59e0b;
+        }
+
+        .card.card-pink .card-label {
+            color: #be185d;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .card.card-blue .card-title {
+            color: #1e40af;
+        }
+
+        .card.card-amber .card-title {
+            color: #92400e;
+        }
+
+        .card.card-pink .card-title {
+            color: #831843;
+        }
+
+        .card-summary {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .card-expand-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .card.active .card-expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .keywords-panel {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid currentColor;
+            opacity: 0;
+        }
+
+        .card.active .keywords-panel {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .keyword-item {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .keyword-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .keyword-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .keyword-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .keyword-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .connector {
+            display: none;
+            align-self: center;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            min-width: 60px;
+            padding: 0 4px;
+        }
+
+        @media (min-width: 640px) {
+            .connector {
+                display: block;
+            }
+
+            .flow-container {
+                flex-wrap: nowrap;
+            }
+
+            .card-wrapper {
+                min-width: auto;
+            }
+        }
+
+        .flow-chart {
+            margin-bottom: 32px;
+        }
+
+        .bottom-bar {
+            background: #fafafa;
+            border: 2px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .flow-text {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .flow-text strong {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .step-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+        }
+
+        .step-chip {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .step-chip.step-intro {
+            background: #64748b;
+        }
+
+        .step-chip.step-1 {
+            background: #2563eb;
+        }
+
+        .step-chip.step-2 {
+            background: #f59e0b;
+        }
+
+        .step-chip.step-3 {
+            background: #be185d;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            font-style: italic;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>오늘 배운 것 한 바퀴</h1>
+            <p>각 핵심을 클릭하면 배운 키워드가 펼쳐집니다</p>
+        </div>
+
+        <div class="flow-chart">
+            <div class="flow-container">
+                <!-- Card 1: 도입 -->
+                <div class="card-wrapper">
+                    <div class="card card-intro" data-card="0">
+                        <div class="card-num">1</div>
+                        <div class="card-label">도입</div>
+                        <div class="card-title">게임 루프</div>
+                        <div class="card-summary">입력 → 로직 → 렌더 반복</div>
+                        <div class="card-expand-icon">▼</div>
+                        <div class="keywords-panel">
+                            <div class="keyword-item">
+                                <div class="keyword-icon">🔄</div>
+                                <div class="keyword-text"><span class="keyword-label">게임 루프</span> 입력→로직→렌더 무한 반복</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">🖼️</div>
+                                <div class="keyword-text"><span class="keyword-label">프레임</span> 루프 한 바퀴 = 화면 한 장</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">⚡</div>
+                                <div class="keyword-text"><span class="keyword-label">fps</span> 초당 프레임 수 = 루프 속도</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="connector">루프 안에서</div>
+
+                <!-- Card 2: 이동 수학 -->
+                <div class="card-wrapper">
+                    <div class="card card-blue" data-card="1">
+                        <div class="card-num">2</div>
+                        <div class="card-label">핵심1</div>
+                        <div class="card-title">이동 수학</div>
+                        <div class="card-summary">DeltaTime으로 프레임 독립적 이동</div>
+                        <div class="card-expand-icon">▼</div>
+                        <div class="keywords-panel">
+                            <div class="keyword-item">
+                                <div class="keyword-icon">⏱️</div>
+                                <div class="keyword-text"><span class="keyword-label">DeltaTime</span> 프레임 독립적 이동의 열쇠</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">➡️</div>
+                                <div class="keyword-text"><span class="keyword-label">벡터</span> 방향 + 크기 = 이동량</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">📈</div>
+                                <div class="keyword-text"><span class="keyword-label">등속/가속/마찰</span> 한 줄씩 추가하면 물리가 된다</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="connector">수학을 알았으니</div>
+
+                <!-- Card 3: 방향 변환 -->
+                <div class="card-wrapper">
+                    <div class="card card-amber" data-card="2">
+                        <div class="card-num">3</div>
+                        <div class="card-label">핵심2</div>
+                        <div class="card-title">방향 변환</div>
+                        <div class="card-summary">입력 → 컨트롤러 회전 → 방향 → 이동</div>
+                        <div class="card-expand-icon">▼</div>
+                        <div class="keywords-panel">
+                            <div class="keyword-item">
+                                <div class="keyword-icon">🎯</div>
+                                <div class="keyword-text"><span class="keyword-label">ControlRotation</span> 카메라가 보는 방향</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">📐</div>
+                                <div class="keyword-text"><span class="keyword-label">ForwardVector</span> 회전에서 뽑은 방향 벡터</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">⚙️</div>
+                                <div class="keyword-text"><span class="keyword-label">CMC</span> AddMovementInput 뒤의 엔진</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="connector">이동을 알았으니</div>
+
+                <!-- Card 4: Lerp -->
+                <div class="card-wrapper">
+                    <div class="card card-pink" data-card="3">
+                        <div class="card-num">4</div>
+                        <div class="card-label">핵심3</div>
+                        <div class="card-title">Lerp</div>
+                        <div class="card-summary">A에서 B까지, t의 커브가 느낌을 결정</div>
+                        <div class="card-expand-icon">▼</div>
+                        <div class="keywords-panel">
+                            <div class="keyword-item">
+                                <div class="keyword-icon">📊</div>
+                                <div class="keyword-text"><span class="keyword-label">Lerp</span> A에서 B까지, t만큼</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">〰️</div>
+                                <div class="keyword-text"><span class="keyword-label">Easing</span> t의 커브 = 움직임의 느낌</div>
+                            </div>
+                            <div class="keyword-item">
+                                <div class="keyword-icon">❤️</div>
+                                <div class="keyword-text"><span class="keyword-label">체력바</span> Lerp 실전 적용 예시</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="flow-text">
+                1회차: <strong>어디에</strong> 넣는가 → 2회차: <strong>뭘</strong> 넣는가 → 3회차: <strong>어떻게 조립</strong>하는가
+            </div>
+            <div class="step-chips">
+                <span class="step-chip step-intro">도입</span>
+                <span class="step-chip step-1">1회차</span>
+                <span class="step-chip step-2">2회차</span>
+                <span class="step-chip step-3">3회차</span>
+            </div>
+            <div class="footer-text">
+                모르고 쓰는 것과 알고 쓰는 것은 다릅니다.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach((card, index) => {
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                // Close other cards
+                cards.forEach((c, i) => {
+                    if (i !== index) {
+                        c.classList.remove('active');
+                    }
+                });
+
+                // Toggle current card
+                card.classList.toggle('active');
+            });
+        });
+
+        // Close card when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.card')) {
+                cards.forEach(card => {
+                    card.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

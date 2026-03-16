@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMC 내부 동작</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* Input Code Section */
+        .input-code {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .input-code code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: 500;
+            color: #2563eb;
+        }
+
+        /* Pipeline Section */
+        .pipeline {
+            margin-bottom: 32px;
+        }
+
+        .stage {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .stage:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transform: translateY(-2px);
+        }
+
+        .stage.active {
+            border-color: currentColor;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stage-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .stage-1 .stage-number { background: #2563eb; }
+        .stage-2 .stage-number { background: #f59e0b; }
+        .stage-3 .stage-number { background: #10b981; }
+        .stage-4 .stage-number { background: #8b5cf6; }
+
+        .stage-title-wrap {
+            flex: 1;
+        }
+
+        .stage-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .stage-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .stage-badge {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-us { color: #2563eb; border-color: #2563eb; }
+        .badge-cmc { color: #10b981; border-color: #10b981; }
+
+        /* Expanded Content */
+        .stage-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .stage.active .stage-content {
+            max-height: 500px;
+        }
+
+        .stage-details {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .detail-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-text {
+            color: #666;
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        /* Arrow Connector */
+        .arrow-connector {
+            text-align: center;
+            font-size: 20px;
+            color: #d1d5db;
+            margin: 8px 0;
+            line-height: 1;
+        }
+
+        /* Footer Message */
+        .footer-message {
+            margin-top: 32px;
+            padding: 16px;
+            background: #fafafa;
+            border-left: 3px solid #2563eb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>CMC 내부 동작</h1>
+            <p>AddMovementInput 한 줄 뒤에서 일어나는 일</p>
+        </div>
+
+        <!-- Input Code -->
+        <div class="input-code">
+            <code>AddMovementInput(Forward, 1.0f)</code>
+        </div>
+
+        <!-- Pipeline -->
+        <div class="pipeline">
+            <!-- Stage 1 -->
+            <div class="stage stage-1" data-stage="1">
+                <div class="stage-header">
+                    <div class="stage-number">1</div>
+                    <div class="stage-title-wrap">
+                        <div class="stage-title">방향 변환</div>
+                        <div class="stage-desc">입력 → 컨트롤러 회전 → 방향 벡터 추출</div>
+                    </div>
+                    <div class="stage-badge badge-us">← 우리</div>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <div class="detail-label">GetControlRotation()</div>
+                            <div class="detail-text">컨트롤러의 현재 회전값을 가져옵니다. 플레이어가 바라보는 방향을 파악하는 첫 단계입니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">GetForwardVector()</div>
+                            <div class="detail-text">회전값으로부터 전방 방향 벡터(Direction)를 추출합니다. 이 벡터에 입력값(1.0f)을 곱해 최종 속도 방향을 결정합니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">흐름</div>
+                            <div class="detail-text">GetControlRotation → GetForwardVector → 입력값 × 방향 벡터 = 이동 방향</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow-connector">↓</div>
+
+            <!-- Stage 2 -->
+            <div class="stage stage-2" data-stage="2">
+                <div class="stage-header">
+                    <div class="stage-number">2</div>
+                    <div class="stage-title-wrap">
+                        <div class="stage-title">속도 계산</div>
+                        <div class="stage-desc">가속, 감속, 마찰, MaxWalkSpeed 적용</div>
+                    </div>
+                    <div class="stage-badge badge-us">← 우리</div>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <div class="detail-label">MaxWalkSpeed</div>
+                            <div class="detail-text">최대 이동 속도를 제한합니다. 기본값 600 cm/s.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">MaxAcceleration</div>
+                            <div class="detail-text">한 프레임에서 얼마나 빨리 가속할 수 있는지 결정합니다. 크수록 반응이 빠릅니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">GroundFriction</div>
+                            <div class="detail-text">땅 위에서의 마찰력. 입력을 멈추면 얼마나 빨리 정지할지 결정합니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">핵심</div>
+                            <div class="detail-text">핵심1에서 다룬 등속/가속/마찰의 에디터 버전입니다. 같은 물리지만 파라미터로 조절할 수 있습니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow-connector">↓</div>
+
+            <!-- Stage 3 -->
+            <div class="stage stage-3" data-stage="3">
+                <div class="stage-header">
+                    <div class="stage-number">3</div>
+                    <div class="stage-title-wrap">
+                        <div class="stage-title">충돌 처리</div>
+                        <div class="stage-desc">벽 슬라이딩, 경사면 각도 체크, 스텝업</div>
+                    </div>
+                    <div class="stage-badge badge-cmc">← CMC</div>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Slide Along Surface</div>
+                            <div class="detail-text">벽에 부딪히면 완전히 정지하지 않고 벽을 따라 미끄러집니다. 자연스러운 이동감을 만듭니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Walkable Floor Angle</div>
+                            <div class="detail-text">캐릭터가 올라갈 수 있는 경사면의 최대 각도를 체크합니다. 너무 가파르면 미끄러지거나 올라가지 못합니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Step Up Height</div>
+                            <div class="detail-text">계단 같은 작은 턱을 자동으로 올라갑니다. 계단마다 점프할 필요가 없습니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow-connector">↓</div>
+
+            <!-- Stage 4 -->
+            <div class="stage stage-4" data-stage="4">
+                <div class="stage-header">
+                    <div class="stage-number">4</div>
+                    <div class="stage-title-wrap">
+                        <div class="stage-title">중력</div>
+                        <div class="stage-desc">매 프레임 하강, 바닥 감지, 점프</div>
+                    </div>
+                    <div class="stage-badge badge-cmc">← CMC</div>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-item">
+                            <div class="detail-label">GravityScale</div>
+                            <div class="detail-text">중력의 배수입니다. 기본값 1.0. 더 크면 더 빠르게 떨어집니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">JumpZVelocity</div>
+                            <div class="detail-text">점프의 초기 상향 속도입니다. 클수록 더 높이 점프합니다.</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">AirControl</div>
+                            <div class="detail-text">공중에서 방향을 바꿀 수 있는 정도(0~1). 0이면 공중에서 방향 전환 불가, 1이면 지상처럼 조종 가능합니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Message -->
+        <div class="footer-message">
+            다 만들 줄 알 필요는 없습니다. 문제가 생겼을 때 어딜 들여다봐야 하는지, 그 기준점을 갖는 게 중요합니다.
+        </div>
+    </div>
+
+    <script>
+        const stages = document.querySelectorAll('.stage');
+        stages.forEach(stage => {
+            stage.addEventListener('click', function() {
+                stages.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

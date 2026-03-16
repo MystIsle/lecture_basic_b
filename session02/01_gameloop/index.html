@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게임 루프</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* === Frame Card === */
+        .frame-card-wrapper {
+            perspective: 800px;
+            margin-bottom: 20px;
+        }
+
+        .frame-card {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.4s ease;
+            transform-origin: center;
+        }
+
+        .frame-card.flipping {
+            animation: flipIn 0.4s ease;
+        }
+
+        @keyframes flipIn {
+            0%   { transform: rotateX(-90deg); opacity: 0; }
+            50%  { opacity: 0.5; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        .frame-number {
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .frame-number span {
+            color: #2563eb;
+            font-size: 15px;
+        }
+
+        /* === Stages Row === */
+        .stages-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 16px;
+        }
+
+        .stage-box {
+            width: 140px;
+            padding: 16px 12px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1.5px solid #e5e5e5;
+            background: #fff;
+        }
+
+        .stage-box.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stage-box.done {
+            opacity: 0.5;
+        }
+
+        .stage-box.pending {
+            opacity: 0.4;
+        }
+
+        .stage-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .stage-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .stage-name-en {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Stage colors */
+        .stage-input.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+        .stage-input.active .stage-name { color: #2563eb; }
+
+        .stage-logic.active {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+        .stage-logic.active .stage-name { color: #b45309; }
+
+        .stage-render.active {
+            background: #fff1f2;
+            border-color: #be185d;
+        }
+        .stage-render.active .stage-name { color: #be185d; }
+
+        /* Arrow between stages */
+        .stage-arrow {
+            font-size: 18px;
+            color: #d1d5db;
+            margin: 0 6px;
+            flex-shrink: 0;
+            transition: color 0.3s;
+        }
+
+        .stage-arrow.lit {
+            color: #666;
+        }
+
+        /* Current stage description */
+        .stage-desc-bar {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 10px 16px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stage-desc-bar .tick-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #b45309;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        /* === Controls === */
+        .controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 10px 18px;
+            border: 1.5px solid #e5e5e5;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #fff;
+        }
+
+        .ctrl-btn.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .ctrl-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .ctrl-btn.auto-active {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #fff;
+        }
+
+        .ctrl-btn.auto-active:hover {
+            background: #b91c1c;
+        }
+
+        /* === Frame History === */
+        .history-section {
+            margin-bottom: 20px;
+        }
+
+        .history-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .history-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .history-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            border: 2px solid #e5e5e5;
+            background: #fff;
+            color: #ccc;
+            transition: all 0.3s;
+        }
+
+        .history-dot.completed {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #16a34a;
+        }
+
+        .history-dot.current {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+
+        /* === Stage Info Cards === */
+        .info-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .info-card:hover {
+            border-color: #ccc;
+        }
+
+        .info-card-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .info-title {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .info-toggle {
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.2s;
+        }
+
+        .info-card.expanded .info-toggle {
+            transform: rotate(180deg);
+        }
+
+        .info-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .info-card.expanded .info-body {
+            max-height: 200px;
+        }
+
+        .info-text {
+            padding: 0 16px 14px 36px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-text .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #b45309;
+        }
+
+        /* === Footer === */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 12px;
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .footer strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>게임 루프</h1>
+            <p>한 프레임 = 입력 → 로직 → 렌더, 이것의 반복</p>
+        </div>
+
+        <!-- Frame Card -->
+        <div class="frame-card-wrapper">
+            <div class="frame-card" id="frameCard">
+                <div class="frame-number">Frame <span id="frameNum">1</span></div>
+
+                <div class="stages-row">
+                    <div class="stage-box stage-input active" data-stage="0">
+                        <div class="stage-icon">🎮</div>
+                        <div class="stage-name">입력</div>
+                        <div class="stage-name-en">Input</div>
+                    </div>
+                    <div class="stage-arrow" id="arrow0">→</div>
+                    <div class="stage-box stage-logic pending" data-stage="1">
+                        <div class="stage-icon">⚙️</div>
+                        <div class="stage-name">로직</div>
+                        <div class="stage-name-en">Tick</div>
+                    </div>
+                    <div class="stage-arrow" id="arrow1">→</div>
+                    <div class="stage-box stage-render pending" data-stage="2">
+                        <div class="stage-icon">🖥️</div>
+                        <div class="stage-name">렌더</div>
+                        <div class="stage-name-en">Draw</div>
+                    </div>
+                </div>
+
+                <div class="stage-desc-bar" id="stageDesc">
+                    키보드, 마우스, 게임패드 입력을 수집합니다
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="ctrl-btn" id="prevBtn">◀ 이전</button>
+            <button class="ctrl-btn primary" id="nextBtn">다음 ▶</button>
+            <button class="ctrl-btn" id="autoBtn">⏯ 자동 재생</button>
+        </div>
+
+        <!-- Frame History -->
+        <div class="history-section">
+            <div class="history-label">프레임 히스토리</div>
+            <div class="history-dots" id="historyDots"></div>
+        </div>
+
+        <!-- Stage Info Cards -->
+        <div class="info-cards">
+            <div class="info-card" data-info="input">
+                <div class="info-card-header">
+                    <div class="info-dot" style="background: #2563eb;"></div>
+                    <div class="info-title">입력 (Input)</div>
+                    <div class="info-toggle">▼</div>
+                </div>
+                <div class="info-body">
+                    <div class="info-text">
+                        키보드, 마우스, 게임패드의 입력을 수집합니다.<br>
+                        "W키가 눌렸는가?", "마우스가 얼마나 움직였는가?" 같은 질문에 답하는 단계입니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" data-info="logic">
+                <div class="info-card-header">
+                    <div class="info-dot" style="background: #f59e0b;"></div>
+                    <div class="info-title">로직 (Tick)</div>
+                    <div class="info-toggle">▼</div>
+                </div>
+                <div class="info-body">
+                    <div class="info-text">
+                        캐릭터 이동, AI 판단, 물리 계산을 수행합니다.<br>
+                        <span class="highlight">1회차에서 본 Tick이 바로 여기!</span><br>
+                        게임의 모든 상태가 이 단계에서 업데이트됩니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" data-info="render">
+                <div class="info-card-header">
+                    <div class="info-dot" style="background: #be185d;"></div>
+                    <div class="info-title">렌더 (Draw)</div>
+                    <div class="info-toggle">▼</div>
+                </div>
+                <div class="info-body">
+                    <div class="info-text">
+                        계산 결과를 화면에 그립니다.<br>
+                        카메라가 본 장면을 모니터에 출력하는 단계입니다. 로직에서 바뀐 캐릭터 위치가 여기서 눈에 보입니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>이 3단계가 1초에 수십 번 반복되면, 그것이 게임입니다</strong>
+        </div>
+    </div>
+
+    <script>
+        // === State ===
+        const MAX_FRAMES = 8;
+        let frame = 1;       // 1-based
+        let stage = 0;       // 0=입력, 1=로직, 2=렌더
+        let autoPlaying = false;
+        let autoTimerId = null;
+
+        // Total step = (frame-1)*3 + stage, range 0..(MAX_FRAMES*3-1)
+        function totalStep() { return (frame - 1) * 3 + stage; }
+        function maxStep() { return MAX_FRAMES * 3 - 1; }
+
+        function setFromTotal(s) {
+            s = Math.max(0, Math.min(maxStep(), s));
+            frame = Math.floor(s / 3) + 1;
+            stage = s % 3;
+        }
+
+        const stageDescs = [
+            '키보드, 마우스, 게임패드 입력을 수집합니다',
+            '캐릭터 이동, AI, 물리 계산을 수행합니다',
+            '계산 결과를 화면에 그립니다'
+        ];
+
+        // === DOM ===
+        const frameCard = document.getElementById('frameCard');
+        const frameNum = document.getElementById('frameNum');
+        const stageDesc = document.getElementById('stageDesc');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const autoBtn = document.getElementById('autoBtn');
+        const stageBoxes = document.querySelectorAll('.stage-box');
+        const arrows = [document.getElementById('arrow0'), document.getElementById('arrow1')];
+        const historyDots = document.getElementById('historyDots');
+
+        // === Build History Dots ===
+        for (let i = 1; i <= MAX_FRAMES; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'history-dot';
+            dot.textContent = i;
+            historyDots.appendChild(dot);
+        }
+
+        // === Render ===
+        let prevFrame = 1;
+
+        function render() {
+            // Frame number
+            frameNum.textContent = frame;
+
+            // Flip animation on frame change
+            if (frame !== prevFrame) {
+                frameCard.classList.remove('flipping');
+                void frameCard.offsetWidth; // reflow
+                frameCard.classList.add('flipping');
+                prevFrame = frame;
+            }
+
+            // Stage boxes
+            stageBoxes.forEach((box, i) => {
+                box.classList.remove('active', 'done', 'pending');
+                if (i === stage) box.classList.add('active');
+                else if (i < stage) box.classList.add('done');
+                else box.classList.add('pending');
+            });
+
+            // Arrows
+            arrows.forEach((a, i) => {
+                a.classList.toggle('lit', i < stage);
+            });
+
+            // Description
+            if (stage === 1) {
+                stageDesc.innerHTML = stageDescs[1] + '<span class="tick-badge">1회차의 Tick!</span>';
+            } else {
+                stageDesc.textContent = stageDescs[stage];
+            }
+
+            // History dots
+            const dots = historyDots.children;
+            for (let i = 0; i < MAX_FRAMES; i++) {
+                const d = dots[i];
+                d.classList.remove('completed', 'current');
+                if (i + 1 < frame) d.classList.add('completed');
+                else if (i + 1 === frame) d.classList.add('current');
+            }
+
+            // Button states
+            prevBtn.disabled = totalStep() === 0;
+            nextBtn.disabled = totalStep() === maxStep() && !autoPlaying;
+        }
+
+        // === Navigation ===
+        function goNext() {
+            let s = totalStep();
+            if (s >= maxStep()) {
+                if (autoPlaying) {
+                    // Loop back to frame 1
+                    setFromTotal(0);
+                } else {
+                    return;
+                }
+            } else {
+                setFromTotal(s + 1);
+            }
+            render();
+        }
+
+        function goPrev() {
+            let s = totalStep();
+            if (s <= 0) return;
+            setFromTotal(s - 1);
+            render();
+        }
+
+        nextBtn.addEventListener('click', () => {
+            stopAuto();
+            goNext();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            stopAuto();
+            goPrev();
+        });
+
+        // === Auto Play ===
+        function startAuto() {
+            autoPlaying = true;
+            autoBtn.textContent = '⏸ 정지';
+            autoBtn.classList.add('auto-active');
+            autoTimerId = setInterval(goNext, 600);
+        }
+
+        function stopAuto() {
+            autoPlaying = false;
+            autoBtn.textContent = '⏯ 자동 재생';
+            autoBtn.classList.remove('auto-active');
+            if (autoTimerId) {
+                clearInterval(autoTimerId);
+                autoTimerId = null;
+            }
+        }
+
+        autoBtn.addEventListener('click', () => {
+            if (autoPlaying) {
+                stopAuto();
+            } else {
+                // If at end, restart
+                if (totalStep() >= maxStep()) {
+                    setFromTotal(0);
+                    render();
+                }
+                startAuto();
+            }
+        });
+
+        // === Info Card Toggle ===
+        document.querySelectorAll('.info-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('expanded');
+            });
+        });
+
+        // === Init ===
+        render();
+    </script>
+</body>
+</html>

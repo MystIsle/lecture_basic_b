@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>벡터 기본 개념</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1.5px solid #e5e5e5;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #999;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: #2563eb;
+        }
+
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 16px;
+            cursor: crosshair;
+        }
+
+        .info-panel {
+            background: #fff;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            color: #2563eb;
+            word-break: break-all;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-row .info-panel {
+            flex: 1;
+        }
+
+        .slider-container {
+            margin: 16px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .button {
+            padding: 10px 16px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .button.secondary {
+            background: #f3f4f6;
+            color: #333;
+            border: 1.5px solid #e5e5e5;
+        }
+
+        .button.secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .description {
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .description strong {
+            color: #be185d;
+        }
+
+        .code-box {
+            background: #f3f4f6;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #1f2937;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .normalize-values {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .norm-chip {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>벡터 기본 개념</h1>
+            <p>탭을 전환하며 벡터의 세 가지 핵심을 체험합니다</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab1">벡터 = 화살표</button>
+            <button class="tab-btn" data-tab="tab2">스칼라 곱</button>
+            <button class="tab-btn" data-tab="tab3">정규화</button>
+        </div>
+
+        <!-- 탭 1: 벡터 = 화살표 -->
+        <div id="tab1" class="tab-content active">
+            <canvas id="canvas1" width="668" height="400"></canvas>
+
+            <div class="info-row">
+                <div class="info-panel">
+                    <div class="info-label">벡터 좌표</div>
+                    <div class="info-value">FVector(<span id="vec1-x">1.00</span>, <span id="vec1-y">1.00</span>, 0)</div>
+                </div>
+                <div class="info-panel">
+                    <div class="info-label">크기 (길이)</div>
+                    <div class="info-value"><span id="vec1-mag">1.41</span></div>
+                </div>
+            </div>
+
+            <div class="description">
+                <strong>방향</strong> = 화살표가 가리키는 곳, <strong>크기</strong> = 화살표의 길이.
+                끝점을 드래그해서 벡터를 바꿔보세요.
+            </div>
+        </div>
+
+        <!-- 탭 2: 스칼라 곱 -->
+        <div id="tab2" class="tab-content">
+            <canvas id="canvas2" width="668" height="400"></canvas>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>곱셈 값 (스칼라)</span>
+                    <span class="slider-value" id="scalar-display">1.0</span>
+                </div>
+                <input type="range" id="scalar-slider" min="0.1" max="3.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="info-panel">
+                <div class="info-label">코드</div>
+                <div class="code-box" id="scalar-code">Forward * 1.0 = FVector(1.00, 0.00, 0) — 크기: 1.00</div>
+            </div>
+
+            <div class="description">
+                벡터에 숫자를 곱하면 <strong>방향은 그대로</strong>, <strong>크기만 변합니다</strong>.
+                게임에서 속도를 곱하는 것과 같습니다.
+            </div>
+        </div>
+
+        <!-- 탭 3: 정규화 -->
+        <div id="tab3" class="tab-content">
+            <canvas id="canvas3" width="668" height="400"></canvas>
+
+            <div class="btn-row">
+                <button class="button" id="normalize-btn">정규화 실행</button>
+                <button class="button secondary" id="reset-btn">리셋</button>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-label">정규화 = 크기를 1로</div>
+                <div class="code-box">Vector.GetSafeNormal()  // 방향만 남기고 크기를 1로</div>
+                <div class="normalize-values" id="norm-values"></div>
+            </div>
+
+            <div class="description">
+                정규화는 <strong>방향만 남기고 크기를 1로</strong> 만드는 과정입니다.
+                <code>GetForwardVector()</code>는 이미 정규화된 벡터를 반환합니다.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === 공통 ===
+        const CANVAS_W = 668;
+        const CANVAS_H = 400;
+        const OX = CANVAS_W / 2;  // origin x
+        const OY = CANVAS_H / 2;  // origin y
+        const UNIT = 120;          // 1.0 게임 단위 = 120px
+
+        function drawGrid(ctx) {
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 0.5;
+            for (let x = OX % 30; x < CANVAS_W; x += 30) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); ctx.stroke();
+            }
+            for (let y = OY % 30; y < CANVAS_H; y += 30) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); ctx.stroke();
+            }
+        }
+
+        function drawAxes(ctx) {
+            ctx.strokeStyle = '#bbb';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, OY); ctx.lineTo(CANVAS_W, OY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(OX, 0); ctx.lineTo(OX, CANVAS_H); ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.beginPath(); ctx.arc(OX, OY, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.font = '12px Segoe UI';
+            ctx.fillStyle = '#999';
+            ctx.fillText('X', CANVAS_W - 18, OY - 8);
+            ctx.fillText('Y', OX + 8, 16);
+        }
+
+        function drawArrow(ctx, gx, gy, color, label) {
+            const px = OX + gx * UNIT;
+            const py = OY - gy * UNIT;
+            const angle = Math.atan2(OY - py, px - OX);
+            const headLen = 12;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(OX, OY);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(px - headLen * Math.cos(angle - 0.4), py + headLen * Math.sin(angle - 0.4));
+            ctx.lineTo(px - headLen * Math.cos(angle + 0.4), py + headLen * Math.sin(angle + 0.4));
+            ctx.closePath();
+            ctx.fill();
+
+            if (label) {
+                ctx.font = '13px Segoe UI';
+                ctx.fillStyle = color;
+                ctx.fillText(label, px + 8, py - 8);
+            }
+        }
+
+        function mag(x, y) { return Math.sqrt(x * x + y * y); }
+
+        // === 탭 전환 ===
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(e.target.dataset.tab).classList.add('active');
+            });
+        });
+
+        // === 탭 1: 벡터 = 화살표 ===
+        const t1 = { gx: 1.0, gy: 1.0, dragging: false };
+        const c1 = document.getElementById('canvas1');
+        const ctx1 = c1.getContext('2d');
+
+        function drawT1() {
+            ctx1.clearRect(0, 0, CANVAS_W, CANVAS_H);
+            drawGrid(ctx1); drawAxes(ctx1);
+            drawArrow(ctx1, t1.gx, t1.gy, '#2563eb', '');
+
+            // 끝점 핸들
+            const px = OX + t1.gx * UNIT;
+            const py = OY - t1.gy * UNIT;
+            ctx1.fillStyle = '#2563eb';
+            ctx1.beginPath(); ctx1.arc(px, py, 6, 0, Math.PI * 2); ctx1.fill();
+            ctx1.fillStyle = '#fff';
+            ctx1.beginPath(); ctx1.arc(px, py, 3, 0, Math.PI * 2); ctx1.fill();
+
+            document.getElementById('vec1-x').textContent = t1.gx.toFixed(2);
+            document.getElementById('vec1-y').textContent = t1.gy.toFixed(2);
+            document.getElementById('vec1-mag').textContent = mag(t1.gx, t1.gy).toFixed(2);
+        }
+
+        c1.addEventListener('mousedown', () => t1.dragging = true);
+        c1.addEventListener('mouseup', () => t1.dragging = false);
+        c1.addEventListener('mouseleave', () => t1.dragging = false);
+        c1.addEventListener('mousemove', e => {
+            if (!t1.dragging) return;
+            const r = c1.getBoundingClientRect();
+            const sx = c1.width / r.width; // scale for CSS sizing
+            const mx = (e.clientX - r.left) * sx;
+            const my = (e.clientY - r.top) * sx;
+            t1.gx = (mx - OX) / UNIT;
+            t1.gy = (OY - my) / UNIT;
+            // clamp to canvas
+            t1.gx = Math.max(-2.5, Math.min(2.5, t1.gx));
+            t1.gy = Math.max(-1.5, Math.min(1.5, t1.gy));
+            drawT1();
+        });
+        drawT1();
+
+        // === 탭 2: 스칼라 곱 ===
+        const t2 = { baseGx: 1.0, baseGy: 0.0, scalar: 1.0 };
+        const c2 = document.getElementById('canvas2');
+        const ctx2 = c2.getContext('2d');
+        const scalarSlider = document.getElementById('scalar-slider');
+
+        function drawT2() {
+            ctx2.clearRect(0, 0, CANVAS_W, CANVAS_H);
+            drawGrid(ctx2); drawAxes(ctx2);
+
+            // 원본 (연한)
+            drawArrow(ctx2, t2.baseGx, t2.baseGy, '#ccc', 'Forward (1,0,0)');
+
+            // 결과
+            const rx = t2.baseGx * t2.scalar;
+            const ry = t2.baseGy * t2.scalar;
+            drawArrow(ctx2, rx, ry, '#be185d', `×${t2.scalar.toFixed(1)}`);
+
+            document.getElementById('scalar-display').textContent = t2.scalar.toFixed(1);
+            document.getElementById('scalar-code').textContent =
+                `Forward * ${t2.scalar.toFixed(1)} = FVector(${rx.toFixed(2)}, ${ry.toFixed(2)}, 0) — 크기: ${mag(rx, ry).toFixed(2)}`;
+        }
+
+        scalarSlider.addEventListener('input', e => {
+            t2.scalar = parseFloat(e.target.value);
+            drawT2();
+        });
+        drawT2();
+
+        // === 탭 3: 정규화 ===
+        const origVecs = [
+            { x: 0.8, y: 0.6, color: '#2563eb' },
+            { x: 1.5, y: 1.0, color: '#f59e0b' },
+            { x: 1.0, y: 1.3, color: '#be185d' },
+            { x: 1.2, y: 0.5, color: '#10b981' }
+        ];
+        let t3vecs = origVecs.map(v => ({ ...v }));
+        let t3normalized = false;
+        let t3animating = false;
+
+        const c3 = document.getElementById('canvas3');
+        const ctx3 = c3.getContext('2d');
+
+        function drawT3() {
+            ctx3.clearRect(0, 0, CANVAS_W, CANVAS_H);
+            drawGrid(ctx3); drawAxes(ctx3);
+
+            // 단위원
+            ctx3.strokeStyle = '#ddd';
+            ctx3.lineWidth = 1;
+            ctx3.setLineDash([5, 5]);
+            ctx3.beginPath();
+            ctx3.arc(OX, OY, UNIT, 0, Math.PI * 2);
+            ctx3.stroke();
+            ctx3.setLineDash([]);
+            ctx3.font = '12px Segoe UI';
+            ctx3.fillStyle = '#bbb';
+            ctx3.fillText('크기 = 1.0', OX + UNIT + 6, OY - 4);
+
+            t3vecs.forEach((v, i) => {
+                drawArrow(ctx3, v.x, v.y, v.color, `V${i + 1}`);
+            });
+
+            updateNormValues();
+        }
+
+        function updateNormValues() {
+            const el = document.getElementById('norm-values');
+            el.innerHTML = t3vecs.map((v, i) => {
+                const m = mag(v.x, v.y);
+                return `<span class="norm-chip" style="color:${v.color};border-color:${v.color}">V${i + 1} 크기: ${m.toFixed(2)}</span>`;
+            }).join('');
+        }
+
+        document.getElementById('normalize-btn').addEventListener('click', () => {
+            if (t3animating || t3normalized) return;
+            t3animating = true;
+            document.getElementById('normalize-btn').disabled = true;
+
+            const starts = t3vecs.map(v => ({ x: v.x, y: v.y }));
+            const targets = starts.map(s => {
+                const m = mag(s.x, s.y);
+                return { x: s.x / m, y: s.y / m };
+            });
+            const t0 = performance.now();
+            const dur = 800;
+
+            function anim(now) {
+                const p = Math.min((now - t0) / dur, 1);
+                const ease = 1 - Math.pow(1 - p, 3); // ease-out
+                t3vecs.forEach((v, i) => {
+                    v.x = starts[i].x + (targets[i].x - starts[i].x) * ease;
+                    v.y = starts[i].y + (targets[i].y - starts[i].y) * ease;
+                });
+                drawT3();
+                if (p < 1) {
+                    requestAnimationFrame(anim);
+                } else {
+                    t3animating = false;
+                    t3normalized = true;
+                    document.getElementById('normalize-btn').disabled = true;
+                }
+            }
+            requestAnimationFrame(anim);
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            if (t3animating) return;
+            t3vecs = origVecs.map(v => ({ ...v }));
+            t3normalized = false;
+            document.getElementById('normalize-btn').disabled = false;
+            drawT3();
+        });
+
+        drawT3();
+    </script>
+</body>
+</html>

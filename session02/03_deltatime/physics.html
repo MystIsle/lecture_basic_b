@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>속도 · 가속 · 마찰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #999;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1.5px solid #e5e5e5;
+        }
+
+        .mode-tab {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .mode-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .mode-tab:hover {
+            color: #333;
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        .track-container {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .track-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .track {
+            position: relative;
+            height: 40px;
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .track-guide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .track-mark {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 8px;
+            background: #e5e5e5;
+        }
+
+        .ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #2563eb;
+            border-radius: 50%;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            transition: left 0.1s linear;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            z-index: 10;
+        }
+
+        .graph-container {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .graph-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 160px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            background: white;
+            cursor: crosshair;
+        }
+
+        .graph-tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .controls-container {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .slider-group {
+            margin-bottom: 16px;
+        }
+
+        .slider-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .slider-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .slider-value {
+            font-size: 14px;
+            color: #666;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+        }
+
+        input[type="range"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .code-display {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .code-line {
+            margin: 2px 0;
+        }
+
+        .code-comment {
+            color: #999;
+        }
+
+        .code-keyword {
+            color: #2563eb;
+        }
+
+        .code-variable {
+            color: #be185d;
+        }
+
+        .code-operator {
+            color: #f59e0b;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: 1.5px solid #e5e5e5;
+            background: #fafafa;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #333;
+        }
+
+        button:hover {
+            border-color: #2563eb;
+            background: white;
+            color: #2563eb;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        button.primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log-panel {
+            background: white;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.5;
+            color: #666;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-frame {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .log-value {
+            color: #be185d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">속도 · 가속 · 마찰</div>
+            <div class="subtitle">한 줄씩 추가하면 물리가 된다</div>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="auto">자동 재생</button>
+            <button class="mode-tab" data-mode="manual">수동 스텝</button>
+        </div>
+
+        <!-- 모드 A: 자동 재생 -->
+        <div class="mode-content active" data-mode="auto">
+            <div class="track-container">
+                <div class="track-label">객체 위치</div>
+                <div class="track" id="trackAuto">
+                    <div class="track-guide" id="trackGuideAuto"></div>
+                    <div class="ball" id="ballAuto"></div>
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <div class="graph-label">속도 변화 (시간 vs 속도)</div>
+                <canvas id="graphCanvas" width="640" height="160"></canvas>
+                <div class="graph-tooltip" id="graphTooltip"></div>
+            </div>
+
+            <div class="controls-container">
+                <div class="button-group">
+                    <button class="primary" id="playBtnAuto">재생</button>
+                    <button id="resetBtnAuto">리셋</button>
+                </div>
+
+                <div class="slider-group" id="speedSliderGroup">
+                    <div class="slider-label">
+                        <span class="slider-name">속도 (Speed)</span>
+                        <span class="slider-value"><span id="speedValue">300</span></span>
+                    </div>
+                    <input type="range" id="speedSlider" min="0" max="500" value="300">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-name">가속도 (Acceleration)</span>
+                        <span class="slider-value"><span id="accelValue">200</span></span>
+                    </div>
+                    <input type="range" id="accelSlider" min="0" max="500" value="200">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-name">마찰 (Friction)</span>
+                        <span class="slider-value"><span id="frictionValue">3</span></span>
+                    </div>
+                    <input type="range" id="frictionSlider" min="0" max="10" value="3" step="0.1">
+                </div>
+
+                <div class="code-display" id="codeDisplay">
+                    <div class="code-line">
+                        <span class="code-keyword">Loc</span> <span class="code-operator">+=</span>
+                        <span class="code-keyword">Forward</span> <span class="code-operator">*</span>
+                        <span class="code-variable">Speed</span> <span class="code-operator">*</span> dt
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 모드 B: 수동 스텝 -->
+        <div class="mode-content" data-mode="manual">
+            <div class="track-container">
+                <div class="track-label">객체 위치</div>
+                <div class="track" id="trackManual">
+                    <div class="track-guide" id="trackGuideManual"></div>
+                    <div class="ball" id="ballManual"></div>
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <div class="graph-label">속도 변화 (시간 vs 속도)</div>
+                <canvas id="graphCanvasManual" width="640" height="160"></canvas>
+            </div>
+
+            <div class="controls-container">
+                <div class="button-group">
+                    <button class="primary" id="stepBtn">한 프레임 진행</button>
+                    <button id="resetBtnManual">리셋</button>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-name">가속도 (Acceleration)</span>
+                        <span class="slider-value"><span id="accelValueManual">200</span></span>
+                    </div>
+                    <input type="range" id="accelSliderManual" min="0" max="500" value="200">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span class="slider-name">마찰 (Friction)</span>
+                        <span class="slider-value"><span id="frictionValueManual">3</span></span>
+                    </div>
+                    <input type="range" id="frictionSliderManual" min="0" max="10" value="3" step="0.1">
+                </div>
+
+                <div id="stepDisplay" style="background: white; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 12px; margin-top: 12px; font-family: 'Monaco', 'Courier New', monospace; font-size: 11px; line-height: 1.8; color: #333; display: none;">
+                    <div id="stepContent"></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <div class="track-label">프레임 로그</div>
+                <div class="log-panel" id="logPanel">
+                    <div style="color: #999; text-align: center; padding: 20px;">
+                        [Step 버튼을 눌러 시뮬레이션을 시작하세요]
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============= 상태 관리 =============
+        let currentMode = 'auto';
+        let simulationMode = 0; // 0: 등속, 1: 가속, 2: 가속+마찰
+
+        // 자동 재생 상태
+        const autoState = {
+            playing: false,
+            position: 20,
+            speed: 300, // 등속 모드 초기값 = speedSlider default
+            time: 0,
+            graphPoints: [],
+            animationId: null
+        };
+
+        // 수동 스텝 상태
+        const manualState = {
+            frame: 0,
+            position: 20,
+            speed: 0,
+            time: 0,
+            graphPoints: [],
+            logs: [],
+            dt: 0.016
+        };
+
+        const dt = 0.016; // 약 60fps
+        const trackWidth = 640 - 40; // 트랙 유효 너비 (양쪽 20px 패딩)
+
+        // ============= DOM 요소 =============
+        const modeButtons = document.querySelectorAll('.mode-tab');
+        const modeContents = document.querySelectorAll('.mode-content');
+        const ballAuto = document.getElementById('ballAuto');
+        const ballManual = document.getElementById('ballManual');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCanvasManual = document.getElementById('graphCanvasManual');
+        const playBtnAuto = document.getElementById('playBtnAuto');
+        const resetBtnAuto = document.getElementById('resetBtnAuto');
+        const stepBtn = document.getElementById('stepBtn');
+        const resetBtnManual = document.getElementById('resetBtnManual');
+        const speedSlider = document.getElementById('speedSlider');
+        const accelSlider = document.getElementById('accelSlider');
+        const frictionSlider = document.getElementById('frictionSlider');
+        const accelSliderManual = document.getElementById('accelSliderManual');
+        const frictionSliderManual = document.getElementById('frictionSliderManual');
+        const speedValue = document.getElementById('speedValue');
+        const accelValue = document.getElementById('accelValue');
+        const frictionValue = document.getElementById('frictionValue');
+        const accelValueManual = document.getElementById('accelValueManual');
+        const frictionValueManual = document.getElementById('frictionValueManual');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const stepDisplay = document.getElementById('stepDisplay');
+        const stepContent = document.getElementById('stepContent');
+        const logPanel = document.getElementById('logPanel');
+
+        const colors = {
+            const: '#2563eb',
+            accel: '#f59e0b',
+            friction: '#be185d'
+        };
+
+        // ============= 탭 전환 =============
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                currentMode = mode;
+
+                modeButtons.forEach(b => b.classList.remove('active'));
+                modeContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+
+                // 모드 전환 시 시뮬레이션 정지
+                if (currentMode === 'auto') {
+                    autoState.playing = false;
+                    playBtnAuto.textContent = '재생';
+                } else {
+                    stepDisplay.style.display = 'none';
+                }
+            });
+        });
+
+        // ============= 슬라이더 이벤트 =============
+        speedSlider.addEventListener('input', (e) => {
+            autoState.speed = parseFloat(e.target.value);
+            speedValue.textContent = e.target.value;
+        });
+
+        accelSlider.addEventListener('input', (e) => {
+            accelValue.textContent = e.target.value;
+        });
+
+        frictionSlider.addEventListener('input', (e) => {
+            frictionValue.textContent = e.target.value;
+        });
+
+        accelSliderManual.addEventListener('input', (e) => {
+            accelValueManual.textContent = e.target.value;
+        });
+
+        frictionSliderManual.addEventListener('input', (e) => {
+            frictionValueManual.textContent = e.target.value;
+        });
+
+        // ============= 그래프 렌더링 =============
+        function drawGraph(canvas, points, mode) {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width;
+            const h = rect.height;
+            const padding = 20;
+
+            // 배경
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, w, h);
+
+            // 그리드 라인
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
+            for (let i = 1; i < 5; i++) {
+                const y = padding + (h - 2 * padding) * (i / 5);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(w - padding, y);
+                ctx.stroke();
+            }
+
+            if (points.length === 0) return;
+
+            // 축 그리기
+            ctx.strokeStyle = '#e5e5e5';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, h - padding);
+            ctx.lineTo(w - padding, h - padding);
+            ctx.stroke();
+
+            // 축 레이블
+            ctx.fillStyle = '#999';
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('시간', w / 2, h - 5);
+            ctx.save();
+            ctx.translate(8, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('속도', 0, 0);
+            ctx.restore();
+
+            // 데이터 정규화
+            const maxSpeed = Math.max(...points.map(p => p.speed), 500);
+            const maxTime = points.length;
+
+            // 그래프 라인 그리기
+            ctx.strokeStyle = colors[mode === 0 ? 'const' : mode === 1 ? 'accel' : 'friction'];
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            points.forEach((point, index) => {
+                const x = padding + (index / (maxTime - 1 || 1)) * (w - 2 * padding);
+                const y = h - padding - (point.speed / maxSpeed) * (h - 2 * padding);
+
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // 데이터 포인트
+            ctx.fillStyle = ctx.strokeStyle;
+            points.forEach((point, index) => {
+                const x = padding + (index / (maxTime - 1 || 1)) * (w - 2 * padding);
+                const y = h - padding - (point.speed / maxSpeed) * (h - 2 * padding);
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // ============= 자동 재생 시뮬레이션 =============
+        function updateAutoSimulation() {
+            const accel = parseFloat(accelSlider.value);
+            const friction = parseFloat(frictionSlider.value);
+
+            if (simulationMode === 0) {
+                // 등속: 속도 고정
+                autoState.position += autoState.speed * dt;
+            } else if (simulationMode === 1) {
+                // 가속: 속도만 증가
+                autoState.speed += accel * dt;
+                autoState.position += autoState.speed * dt;
+            } else {
+                // 가속+마찰: 속도 증가 후 감소
+                autoState.speed += accel * dt;
+                autoState.speed *= (1 - friction * dt);
+                autoState.position += autoState.speed * dt;
+            }
+
+            autoState.time += dt;
+
+            // 트랙 끝에 도달하면 리셋
+            if (autoState.position > trackWidth + 20) {
+                autoState.position = 20;
+                autoState.graphPoints = [];
+                autoState.time = 0;
+            }
+
+            // 그래프 데이터 저장
+            autoState.graphPoints.push({
+                speed: autoState.speed,
+                time: autoState.time
+            });
+
+            // UI 업데이트
+            ballAuto.style.left = autoState.position + 'px';
+            drawGraph(graphCanvas, autoState.graphPoints, simulationMode);
+        }
+
+        function animateAuto() {
+            if (autoState.playing) {
+                updateAutoSimulation();
+                autoState.animationId = requestAnimationFrame(animateAuto);
+            }
+        }
+
+        // ============= 모드 전환 버튼 (자동 재생) =============
+        function createModeButtons() {
+            const container = document.querySelector('.controls-container');
+            const buttonGroup = document.querySelector('.button-group');
+
+            // 기존 모드 버튼 제거
+            const oldModeButtons = container.querySelectorAll('[data-sim-mode]');
+            oldModeButtons.forEach(btn => btn.remove());
+
+            // 새 모드 버튼 추가
+            const modesInfo = [
+                { id: 0, label: '등속', color: colors.const },
+                { id: 1, label: '가속', color: colors.accel },
+                { id: 2, label: '가속+마찰', color: colors.friction }
+            ];
+
+            modesInfo.forEach(mode => {
+                const btn = document.createElement('button');
+                btn.textContent = mode.label;
+                btn.dataset.simMode = mode.id;
+                btn.style.borderColor = mode.color;
+                btn.style.color = mode.color;
+
+                if (mode.id === simulationMode) {
+                    btn.style.background = mode.color;
+                    btn.style.color = 'white';
+                }
+
+                btn.addEventListener('click', () => {
+                    simulationMode = mode.id;
+                    autoState.graphPoints = [];
+                    autoState.time = 0;
+                    autoState.speed = mode.id === 0 ? parseFloat(speedSlider.value) : 0;
+
+                    // UI 업데이트
+                    document.querySelectorAll('[data-sim-mode]').forEach(b => {
+                        const m = modesInfo.find(mi => mi.id === parseInt(b.dataset.simMode));
+                        b.style.background = 'transparent';
+                        b.style.color = m.color;
+                    });
+                    btn.style.background = mode.color;
+                    btn.style.color = 'white';
+
+                    // 슬라이더 활성화/비활성화
+                    const speedSliderGroup = document.getElementById('speedSliderGroup');
+                    speedSlider.disabled = mode.id !== 0;
+                    speedSliderGroup.style.opacity = mode.id === 0 ? '1' : '0.5';
+
+                    // 등속 모드: 가속/마찰 비활성화
+                    accelSlider.disabled = mode.id === 0;
+                    frictionSlider.disabled = mode.id === 0;
+                    accelSlider.parentElement.parentElement.style.opacity = mode.id === 0 ? '0.4' : '1';
+                    frictionSlider.parentElement.parentElement.style.opacity = mode.id === 0 ? '0.4' : '1';
+
+                    // 코드 표시 업데이트
+                    updateCodeDisplay();
+                });
+
+                buttonGroup.appendChild(btn);
+            });
+        }
+
+        function updateCodeDisplay() {
+            const codeLines = {
+                0: [
+                    '<span class="code-keyword">Loc</span> <span class="code-operator">+=</span> <span class="code-keyword">Forward</span> <span class="code-operator">*</span> <span class="code-variable">Speed</span> <span class="code-operator">*</span> dt'
+                ],
+                1: [
+                    '<span class="code-keyword">Loc</span> <span class="code-operator">+=</span> <span class="code-keyword">Forward</span> <span class="code-operator">*</span> <span class="code-variable">Speed</span> <span class="code-operator">*</span> dt',
+                    '<span class="code-variable">Speed</span> <span class="code-operator">+=</span> <span class="code-variable">Accel</span> <span class="code-operator">*</span> dt'
+                ],
+                2: [
+                    '<span class="code-keyword">Loc</span> <span class="code-operator">+=</span> <span class="code-keyword">Forward</span> <span class="code-operator">*</span> <span class="code-variable">Speed</span> <span class="code-operator">*</span> dt',
+                    '<span class="code-variable">Speed</span> <span class="code-operator">+=</span> <span class="code-variable">Accel</span> <span class="code-operator">*</span> dt',
+                    '<span class="code-variable">Speed</span> <span class="code-operator">*=</span> (1 <span class="code-operator">-</span> <span class="code-variable">Friction</span> <span class="code-operator">*</span> dt)'
+                ]
+            };
+
+            codeDisplay.innerHTML = codeLines[simulationMode]
+                .map(line => `<div class="code-line">${line}</div>`)
+                .join('');
+        }
+
+        // ============= 수동 스텝 시뮬레이션 =============
+        function stepManualSimulation() {
+            const accel = parseFloat(accelSliderManual.value);
+            const friction = parseFloat(frictionSliderManual.value);
+
+            const oldSpeed = manualState.speed;
+            let speedAfterAccel = oldSpeed;
+            let speedAfterFriction = speedAfterAccel;
+
+            // 계산 과정
+            speedAfterAccel += accel * manualState.dt;
+            speedAfterFriction = speedAfterAccel * (1 - friction * manualState.dt);
+
+            manualState.speed = speedAfterFriction;
+            const movement = manualState.speed * manualState.dt;
+            manualState.position += movement;
+
+            // 트랙 끝에 도달하면 리셋
+            if (manualState.position > trackWidth + 20) {
+                manualState.position = 20;
+            }
+
+            manualState.frame++;
+            manualState.time += manualState.dt;
+
+            // 그래프 데이터
+            manualState.graphPoints.push({
+                speed: manualState.speed,
+                time: manualState.time
+            });
+
+            // 스텝 표시
+            const accelDelta = accel * manualState.dt;
+            const frictionFactor = (1 - friction * manualState.dt).toFixed(3);
+            const speedAfterFrictionRounded = speedAfterFriction.toFixed(1);
+            const movementRounded = movement.toFixed(2);
+            const positionRounded = manualState.position.toFixed(1);
+
+            stepContent.innerHTML = `
+                <div><span class="code-keyword">Frame ${manualState.frame}</span> (가속+마찰 모드)</div>
+                <div style="margin-left: 12px; margin-top: 4px;">
+                    <div><span class="code-variable">Speed</span> = ${oldSpeed.toFixed(1)}</div>
+                    <div><span class="code-operator">+</span> Accel <span class="code-operator">×</span> dt = <span class="code-operator">+</span> ${accel} <span class="code-operator">×</span> 0.016 = <span class="code-operator">+</span> ${accelDelta.toFixed(2)} → ${speedAfterAccel.toFixed(1)}</div>
+                    <div><span class="code-operator">×</span> (1 - Friction <span class="code-operator">×</span> dt) = <span class="code-operator">×</span> ${frictionFactor} → ${speedAfterFrictionRounded}</div>
+                    <div>Movement = ${speedAfterFrictionRounded} <span class="code-operator">×</span> 0.016 = ${movementRounded}</div>
+                    <div>Position = ${(manualState.position - movement).toFixed(1)} → ${positionRounded}</div>
+                </div>
+            `;
+            stepDisplay.style.display = 'block';
+
+            // 로그 추가
+            manualState.logs.push({
+                frame: manualState.frame,
+                speed: manualState.speed.toFixed(1),
+                movement: movement.toFixed(2),
+                position: manualState.position.toFixed(1)
+            });
+
+            updateManualLog();
+
+            // UI 업데이트
+            ballManual.style.left = manualState.position + 'px';
+            drawGraph(graphCanvasManual, manualState.graphPoints, 2);
+        }
+
+        function updateManualLog() {
+            if (manualState.logs.length === 0) {
+                logPanel.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">[Step 버튼을 눌러 시뮬레이션을 시작하세요]</div>';
+                return;
+            }
+
+            logPanel.innerHTML = manualState.logs.map(log => `
+                <div class="log-entry">
+                    <span class="log-frame">Frame ${log.frame}:</span>
+                    Speed=<span class="log-value">${log.speed}</span>,
+                    Movement=<span class="log-value">${log.movement}</span>,
+                    Position=<span class="log-value">${log.position}</span>
+                </div>
+            `).join('');
+
+            // 가장 최근 항목으로 스크롤
+            logPanel.scrollTop = logPanel.scrollHeight;
+        }
+
+        // ============= 버튼 이벤트 =============
+        playBtnAuto.addEventListener('click', () => {
+            autoState.playing = !autoState.playing;
+            playBtnAuto.textContent = autoState.playing ? '일시정지' : '재생';
+
+            if (autoState.playing) {
+                animateAuto();
+            } else if (autoState.animationId) {
+                cancelAnimationFrame(autoState.animationId);
+            }
+        });
+
+        resetBtnAuto.addEventListener('click', () => {
+            autoState.playing = false;
+            autoState.position = 20;
+            autoState.speed = simulationMode === 0 ? parseFloat(speedSlider.value) : 0;
+            autoState.time = 0;
+            autoState.graphPoints = [];
+            playBtnAuto.textContent = '재생';
+            ballAuto.style.left = autoState.position + 'px';
+            drawGraph(graphCanvas, autoState.graphPoints, simulationMode);
+
+            if (autoState.animationId) {
+                cancelAnimationFrame(autoState.animationId);
+            }
+        });
+
+        stepBtn.addEventListener('click', () => {
+            stepManualSimulation();
+        });
+
+        resetBtnManual.addEventListener('click', () => {
+            manualState.frame = 0;
+            manualState.position = 20;
+            manualState.speed = 0;
+            manualState.time = 0;
+            manualState.graphPoints = [];
+            manualState.logs = [];
+            stepDisplay.style.display = 'none';
+            stepContent.innerHTML = '';
+            updateManualLog();
+            ballManual.style.left = manualState.position + 'px';
+            drawGraph(graphCanvasManual, manualState.graphPoints, 2);
+        });
+
+        // ============= 초기화 =============
+        function initialize() {
+            createModeButtons();
+            updateCodeDisplay();
+
+            // 등속 모드 초기 상태: 가속/마찰 슬라이더 비활성화
+            accelSlider.disabled = true;
+            frictionSlider.disabled = true;
+            accelSlider.parentElement.parentElement.style.opacity = '0.4';
+            frictionSlider.parentElement.parentElement.style.opacity = '0.4';
+
+            // 트랙 마크 생성
+            const trackGuideAuto = document.getElementById('trackGuideAuto');
+            const trackGuideManual = document.getElementById('trackGuideManual');
+
+            for (let i = 0; i <= 10; i++) {
+                const mark = document.createElement('div');
+                mark.className = 'track-mark';
+                mark.style.left = (i * 64) + 'px';
+                trackGuideAuto.appendChild(mark.cloneNode());
+            }
+
+            for (let i = 0; i <= 10; i++) {
+                const mark = document.createElement('div');
+                mark.className = 'track-mark';
+                mark.style.left = (i * 64) + 'px';
+                trackGuideManual.appendChild(mark.cloneNode());
+            }
+
+            drawGraph(graphCanvas, [], 0);
+            drawGraph(graphCanvasManual, [], 2);
+        }
+
+        initialize();
+    </script>
+</body>
+</html>

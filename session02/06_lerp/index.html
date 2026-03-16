@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lerp 커브 비교</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #666;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover { color: #333; }
+
+        .tab-btn.active {
+            background: #fff;
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Formula Box */
+        .formula-box {
+            background: #f3f4f6;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .formula-desc {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        /* Canvas */
+        canvas {
+            display: block;
+            width: 100%;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 12px;
+        }
+
+        /* Ball Track */
+        .track-section {
+            margin-bottom: 16px;
+        }
+
+        .track-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .track {
+            position: relative;
+            height: 36px;
+            background: #f3f4f6;
+            border-radius: 18px;
+            border: 1px solid #e5e5e5;
+            overflow: hidden;
+        }
+
+        .ball {
+            position: absolute;
+            top: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            left: 0;
+        }
+
+        /* Compare mode: multiple tracks */
+        .track-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .track-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .track-row-label {
+            font-size: 13px;
+            font-weight: 500;
+            width: 70px;
+            flex-shrink: 0;
+        }
+
+        .track-row .track {
+            flex: 1;
+        }
+
+        /* Slider + Button */
+        .control-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .slider-wrap {
+            flex: 1;
+        }
+
+        .slider-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .slider-val {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+        }
+
+        .play-btn {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .play-btn:hover { background: #1d4ed8; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 12px;
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .footer strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Lerp 커브 비교</h1>
+            <p>t의 커브를 바꾸면 움직임의 느낌이 달라집니다</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="linear"><span class="dot" style="background:#2563eb"></span>Linear</button>
+            <button class="tab-btn" data-tab="easeIn"><span class="dot" style="background:#f59e0b"></span>Ease-In</button>
+            <button class="tab-btn" data-tab="easeOut"><span class="dot" style="background:#be185d"></span>Ease-Out</button>
+            <button class="tab-btn" data-tab="compare"><span class="dot" style="background:#333"></span>전체 비교</button>
+        </div>
+
+        <!-- Linear -->
+        <div id="linear" class="tab-content active">
+            <div class="formula-box">
+                <div class="formula">result = A + (B - A) × t</div>
+                <div class="formula-desc">일정한 속도로 이동합니다</div>
+            </div>
+            <canvas id="cvLinear" width="668" height="200"></canvas>
+            <div class="track-section">
+                <div class="track-label"><span>A</span><span>B</span></div>
+                <div class="track"><div class="ball" id="ballLinear" style="background:#2563eb"></div></div>
+            </div>
+        </div>
+
+        <!-- Ease-In -->
+        <div id="easeIn" class="tab-content">
+            <div class="formula-box">
+                <div class="formula">result = A + (B - A) × t²</div>
+                <div class="formula-desc">처음에 느리다가 점점 빨라집니다</div>
+            </div>
+            <canvas id="cvEaseIn" width="668" height="200"></canvas>
+            <div class="track-section">
+                <div class="track-label"><span>A</span><span>B</span></div>
+                <div class="track"><div class="ball" id="ballEaseIn" style="background:#f59e0b"></div></div>
+            </div>
+        </div>
+
+        <!-- Ease-Out -->
+        <div id="easeOut" class="tab-content">
+            <div class="formula-box">
+                <div class="formula">result = A + (B - A) × (1-(1-t)²)</div>
+                <div class="formula-desc">처음에 빠르다가 점점 느려집니다</div>
+            </div>
+            <canvas id="cvEaseOut" width="668" height="200"></canvas>
+            <div class="track-section">
+                <div class="track-label"><span>A</span><span>B</span></div>
+                <div class="track"><div class="ball" id="ballEaseOut" style="background:#be185d"></div></div>
+            </div>
+        </div>
+
+        <!-- Compare -->
+        <div id="compare" class="tab-content">
+            <div class="formula-box">
+                <div class="formula">세 커브를 동시에 비교</div>
+                <div class="formula-desc">같은 A→B 거리, 같은 시간, 다른 느낌</div>
+            </div>
+            <canvas id="cvCompare" width="668" height="200"></canvas>
+            <div class="track-group">
+                <div class="track-row">
+                    <div class="track-row-label" style="color:#2563eb">Linear</div>
+                    <div class="track"><div class="ball" id="ballCmpLin" style="background:#2563eb"></div></div>
+                </div>
+                <div class="track-row">
+                    <div class="track-row-label" style="color:#f59e0b">Ease-In</div>
+                    <div class="track"><div class="ball" id="ballCmpIn" style="background:#f59e0b"></div></div>
+                </div>
+                <div class="track-row">
+                    <div class="track-row-label" style="color:#be185d">Ease-Out</div>
+                    <div class="track"><div class="ball" id="ballCmpOut" style="background:#be185d"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="control-row">
+            <div class="slider-wrap">
+                <div class="slider-top">
+                    <span>t</span>
+                    <span class="slider-val" id="tDisplay">0.00</span>
+                </div>
+                <input type="range" id="tSlider" min="0" max="1" step="0.005" value="0">
+            </div>
+            <button class="play-btn" id="playBtn">▶ 재생</button>
+        </div>
+
+        <div class="footer">
+            <strong>t를 커브로 바꾸면 움직임의 느낌이 달라진다</strong>
+        </div>
+    </div>
+
+    <script>
+        // === Curves ===
+        const fn = {
+            linear: t => t,
+            easeIn: t => t * t,
+            easeOut: t => 1 - (1 - t) * (1 - t)
+        };
+        const colors = { linear: '#2563eb', easeIn: '#f59e0b', easeOut: '#be185d' };
+
+        // === State ===
+        let currentTab = 'linear';
+        let tVal = 0;
+        let playing = false;
+        let playStart = null;
+        let playAnimId = null;
+
+        // === Tabs ===
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.dataset.tab;
+                document.getElementById(currentTab).classList.add('active');
+                render(tVal);
+            });
+        });
+
+        // === Draw graph ===
+        function drawGraph(canvasId, curvesToDraw, t) {
+            const cv = document.getElementById(canvasId);
+            const ctx = cv.getContext('2d');
+            const W = cv.width, H = cv.height;
+            const pad = 28;
+            const gw = W - pad * 2, gh = H - pad * 2;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // grid
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const x = pad + (gw / 4) * i;
+                const y = pad + (gh / 4) * i;
+                ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + gh); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + gw, y); ctx.stroke();
+            }
+
+            // axes
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(pad, pad, gw, gh);
+
+            // axis labels
+            ctx.fillStyle = '#bbb';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('0', pad, pad + gh + 14);
+            ctx.textAlign = 'right';
+            ctx.fillText('1', pad + gw, pad + gh + 14);
+            ctx.fillText('1', pad - 6, pad + 5);
+
+            // curves
+            curvesToDraw.forEach(name => {
+                ctx.strokeStyle = colors[name];
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                for (let i = 0; i <= 200; i++) {
+                    const tt = i / 200;
+                    const v = fn[name](tt);
+                    const x = pad + tt * gw;
+                    const y = pad + gh - v * gh;
+                    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            // current t dot(s)
+            curvesToDraw.forEach(name => {
+                const v = fn[name](t);
+                const px = pad + t * gw;
+                const py = pad + gh - v * gh;
+                ctx.fillStyle = colors[name];
+                ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill();
+            });
+        }
+
+        // === Move ball ===
+        function moveBall(id, curveName, t) {
+            const ball = document.getElementById(id);
+            if (!ball) return;
+            const track = ball.parentElement;
+            const maxLeft = track.offsetWidth - ball.offsetWidth;
+            const v = fn[curveName](t);
+            ball.style.left = (v * maxLeft) + 'px';
+        }
+
+        // === Render ===
+        function render(t) {
+            tVal = t;
+            document.getElementById('tDisplay').textContent = t.toFixed(2);
+            document.getElementById('tSlider').value = t;
+
+            if (currentTab === 'compare') {
+                drawGraph('cvCompare', ['linear', 'easeIn', 'easeOut'], t);
+                moveBall('ballCmpLin', 'linear', t);
+                moveBall('ballCmpIn', 'easeIn', t);
+                moveBall('ballCmpOut', 'easeOut', t);
+            } else {
+                const canvasMap = { linear: 'cvLinear', easeIn: 'cvEaseIn', easeOut: 'cvEaseOut' };
+                const ballMap = { linear: 'ballLinear', easeIn: 'ballEaseIn', easeOut: 'ballEaseOut' };
+                drawGraph(canvasMap[currentTab], [currentTab], t);
+                moveBall(ballMap[currentTab], currentTab, t);
+            }
+        }
+
+        // === Slider ===
+        document.getElementById('tSlider').addEventListener('input', e => {
+            stopPlay();
+            render(parseFloat(e.target.value));
+        });
+
+        // === Play ===
+        const playBtn = document.getElementById('playBtn');
+
+        function stopPlay() {
+            if (playAnimId) cancelAnimationFrame(playAnimId);
+            playing = false;
+            playBtn.textContent = '▶ 재생';
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (playing) {
+                stopPlay();
+                return;
+            }
+            // If at end, restart
+            if (tVal >= 0.99) tVal = 0;
+            playing = true;
+            playBtn.textContent = '⏸ 정지';
+            playStart = performance.now() - tVal * 2000;
+
+            function step(now) {
+                if (!playing) return;
+                const elapsed = now - playStart;
+                let t = elapsed / 2000; // 2 second duration
+                if (t >= 1) {
+                    t = 1;
+                    render(t);
+                    stopPlay();
+                    return;
+                }
+                render(t);
+                playAnimId = requestAnimationFrame(step);
+            }
+            playAnimId = requestAnimationFrame(step);
+        });
+
+        // === Init ===
+        render(0);
+    </script>
+</body>
+</html>

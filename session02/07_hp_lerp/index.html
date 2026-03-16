@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체력바 보간</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* HP Bar */
+        .hp-section {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .hp-values {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hp-bar-bg {
+            position: relative;
+            width: 100%;
+            height: 36px;
+            background: #fee2e2;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #fca5a5;
+        }
+
+        .hp-bar-actual {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #fca5a5;
+            border-radius: 7px;
+            transition: width 0.05s linear;
+        }
+
+        .hp-bar-display {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            background: #be185d;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+        }
+
+        .hp-bar-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .damage-btn {
+            flex: 2;
+            padding: 12px;
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .damage-btn:hover { background: #b91c1c; }
+        .damage-btn:active { transform: scale(0.98); }
+
+        .reset-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f3f4f6;
+            color: #333;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .reset-btn:hover { background: #e5e7eb; }
+
+        /* Curve + Duration */
+        .settings {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .setting-box {
+            flex: 1;
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .setting-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .curve-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #2563eb;
+            cursor: pointer;
+        }
+
+        .radio-group label {
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        .color-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .duration-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .duration-unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: #999;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Graph */
+        .graph-section {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        /* Code */
+        .code-section {
+            background: #f3f4f6;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .code-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .code .highlight { color: #2563eb; font-weight: 600; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 12px;
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .footer strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>체력바 보간</h1>
+            <p>데미지 버튼을 누르고 커브와 속도를 바꿔보세요</p>
+        </div>
+
+        <!-- HP Bar -->
+        <div class="hp-section">
+            <div class="hp-values">
+                <span>표시 HP: <strong id="displayHpText">100</strong></span>
+                <span>실제 HP: <strong id="actualHpText">100</strong></span>
+            </div>
+            <div class="hp-bar-bg">
+                <div class="hp-bar-actual" id="barActual" style="width:100%"></div>
+                <div class="hp-bar-display" id="barDisplay" style="width:100%">
+                    <span class="hp-bar-label" id="barLabel">100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="damage-btn" id="damageBtn">데미지! (-30~50)</button>
+            <button class="reset-btn" id="resetBtn">리셋</button>
+        </div>
+
+        <!-- Settings: Curve + Duration -->
+        <div class="settings">
+            <div class="setting-box">
+                <div class="setting-label">곡선 선택</div>
+                <div class="curve-options">
+                    <div class="radio-group">
+                        <input type="radio" id="linear" name="curve" value="linear" checked>
+                        <label for="linear"><span class="color-dot" style="background:#2563eb"></span>선형 (t)</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="easeIn" name="curve" value="easeIn">
+                        <label for="easeIn"><span class="color-dot" style="background:#f59e0b"></span>ease-in (t²)</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="easeOut" name="curve" value="easeOut">
+                        <label for="easeOut"><span class="color-dot" style="background:#be185d"></span>ease-out</label>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-box">
+                <div class="setting-label">Lerp 시간</div>
+                <div class="duration-value"><span id="durVal">1.0</span><span class="duration-unit">초</span></div>
+                <input type="range" id="durSlider" min="0.3" max="3.0" step="0.1" value="1.0">
+            </div>
+        </div>
+
+        <!-- Curve Graph -->
+        <div class="graph-section">
+            <canvas id="graphCanvas" width="668" height="200"></canvas>
+        </div>
+
+        <!-- Code -->
+        <div class="code-section">
+            <div class="code-label">코드</div>
+            <div class="code" id="codeDisplay">
+InterpSpeed = <span class="highlight">1.0</span>s
+DisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">linear</span>(t))
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>같은 Lerp인데 t의 커브만 바꿔도 느낌이 완전히 달라집니다</strong>
+        </div>
+    </div>
+
+    <script>
+        // === State ===
+        let actualHp = 100;
+        let displayHp = 100;
+        let lerpFrom = 100;   // display HP at start of lerp
+        let lerpTo = 100;     // target HP
+        let duration = 1.0;   // seconds
+        let curve = 'linear';
+        let lerpStart = null;
+        let animId = null;
+
+        // === Curve functions ===
+        const curves = {
+            linear: t => t,
+            easeIn: t => t * t,
+            easeOut: t => 1 - (1 - t) * (1 - t)
+        };
+        const curveColors = {
+            linear: '#2563eb',
+            easeIn: '#f59e0b',
+            easeOut: '#be185d'
+        };
+
+        // === DOM ===
+        const barActual = document.getElementById('barActual');
+        const barDisplay = document.getElementById('barDisplay');
+        const barLabel = document.getElementById('barLabel');
+        const displayHpText = document.getElementById('displayHpText');
+        const actualHpText = document.getElementById('actualHpText');
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // === Update display ===
+        function updateUI(t) {
+            const pct = Math.max(0, displayHp);
+            barDisplay.style.width = pct + '%';
+            barActual.style.width = Math.max(0, actualHp) + '%';
+            barLabel.textContent = Math.round(displayHp);
+            displayHpText.textContent = Math.round(displayHp);
+            actualHpText.textContent = Math.round(actualHp);
+            drawGraph(t || 0);
+        }
+
+        // === Draw graph ===
+        function drawGraph(currentT) {
+            const W = canvas.width, H = canvas.height;
+            const pad = 30;
+            const gw = W - pad * 2, gh = H - pad * 2;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // grid
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const x = pad + (gw / 4) * i;
+                const y = pad + (gh / 4) * i;
+                ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + gh); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + gw, y); ctx.stroke();
+            }
+
+            // axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(pad, pad, gw, gh);
+
+            // labels
+            ctx.fillStyle = '#999';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('0', pad, pad + gh + 16);
+            ctx.textAlign = 'right';
+            ctx.fillText(`${duration.toFixed(1)}s`, pad + gw, pad + gh + 16);
+            ctx.textAlign = 'right';
+            ctx.fillText('100%', pad - 4, pad + 4);
+            ctx.fillText('0%', pad - 4, pad + gh + 4);
+
+            // curve
+            const fn = curves[curve];
+            const col = curveColors[curve];
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            for (let i = 0; i <= 200; i++) {
+                const t = i / 200;
+                const v = fn(t);
+                const x = pad + t * gw;
+                const y = pad + gh - v * gh;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // current point
+            if (currentT >= 0 && currentT <= 1) {
+                const v = fn(currentT);
+                const px = pad + currentT * gw;
+                const py = pad + gh - v * gh;
+
+                // vertical line
+                ctx.strokeStyle = col;
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.3;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath(); ctx.moveTo(px, pad); ctx.lineTo(px, pad + gh); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1;
+
+                // dot
+                ctx.fillStyle = col;
+                ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        // === Animation ===
+        function animate(now) {
+            if (lerpStart === null) { lerpStart = now; }
+            const elapsed = (now - lerpStart) / 1000; // seconds
+            const t = Math.min(elapsed / duration, 1);
+            const curved = curves[curve](t);
+
+            displayHp = lerpFrom + (lerpTo - lerpFrom) * curved;
+            updateUI(t);
+
+            if (t < 1) {
+                animId = requestAnimationFrame(animate);
+            } else {
+                displayHp = lerpTo;
+                animId = null;
+                updateUI(1);
+            }
+        }
+
+        function startLerp() {
+            if (animId) cancelAnimationFrame(animId);
+            lerpFrom = displayHp;  // start from current displayed position
+            lerpTo = actualHp;
+            lerpStart = null;
+            animId = requestAnimationFrame(animate);
+        }
+
+        // === Events ===
+        document.getElementById('damageBtn').addEventListener('click', () => {
+            const dmg = Math.floor(Math.random() * 21) + 30; // 30-50
+            actualHp = Math.max(0, actualHp - dmg);
+            barActual.style.width = Math.max(0, actualHp) + '%';
+            actualHpText.textContent = Math.round(actualHp);
+            startLerp();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (animId) cancelAnimationFrame(animId);
+            animId = null;
+            actualHp = 100;
+            displayHp = 100;
+            lerpFrom = 100;
+            lerpTo = 100;
+            updateUI(0);
+        });
+
+        document.querySelectorAll('input[name="curve"]').forEach(r => {
+            r.addEventListener('change', e => {
+                curve = e.target.value;
+                updateCode();
+                if (animId) {
+                    // restart from current position with new curve
+                    startLerp();
+                } else {
+                    drawGraph(0);
+                }
+            });
+        });
+
+        const durSlider = document.getElementById('durSlider');
+        durSlider.addEventListener('input', e => {
+            duration = parseFloat(e.target.value);
+            document.getElementById('durVal').textContent = duration.toFixed(1);
+            updateCode();
+        });
+
+        function updateCode() {
+            const curveNames = { linear: 'linear', easeIn: 't²', easeOut: '1-(1-t)²' };
+            document.getElementById('codeDisplay').innerHTML =
+                `InterpSpeed = <span class="highlight">${duration.toFixed(1)}</span>s\nDisplayHP = FMath::Lerp(StartHP, TargetHP, <span class="highlight">${curveNames[curve]}</span>(t))`;
+        }
+
+        // === Init ===
+        updateUI(0);
+        updateCode();
+    </script>
+</body>
+</html>
