@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>벡터의 세 가지 용도</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: 2px solid #e5e5e5;
+            border-radius: 10px;
+            background: #fafafa;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+        }
+
+        .tab-btn:hover { border-color: #ccc; }
+
+        .tab-btn.active-blue {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .tab-btn.active-amber {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .tab-btn.active-green {
+            border-color: #10b981;
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .tab-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Canvas area */
+        .canvas-section {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            border-radius: 8px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            cursor: crosshair;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+            color: #aaa;
+            pointer-events: none;
+        }
+
+        /* Info card */
+        .info-card {
+            border-radius: 12px;
+            border: 2px solid #e5e5e5;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .info-card.card-blue {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        .info-card.card-amber {
+            border-color: #fcd34d;
+            background: #fffbeb;
+        }
+
+        .info-card.card-green {
+            border-color: #6ee7b7;
+            background: #ecfdf5;
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .info-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: rgba(0,0,0,0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .info-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Value display */
+        .value-display {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .value-box {
+            flex: 1;
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .value-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .value-num {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .value-num.blue { color: #2563eb; }
+        .value-num.amber { color: #d97706; }
+        .value-num.green { color: #10b981; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .footer strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>벡터의 세 가지 용도</h1>
+            <p>같은 숫자도 어떻게 쓰느냐에 따라 의미가 달라집니다</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active-blue" data-tab="0">
+                <span class="tab-icon">📍</span>위치
+            </button>
+            <button class="tab-btn" data-tab="1">
+                <span class="tab-icon">🏹</span>방향 + 거리
+            </button>
+            <button class="tab-btn" data-tab="2">
+                <span class="tab-icon">🧭</span>방향만
+            </button>
+        </div>
+
+        <!-- Value display -->
+        <div class="value-display">
+            <div class="value-box">
+                <div class="value-label">X</div>
+                <div class="value-num blue" id="valX">3.0</div>
+            </div>
+            <div class="value-box">
+                <div class="value-label">Y</div>
+                <div class="value-num blue" id="valY">4.0</div>
+            </div>
+            <div class="value-box">
+                <div class="value-label" id="magLabel">크기 (거리)</div>
+                <div class="value-num blue" id="valMag">5.0</div>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-section">
+            <canvas id="cv" width="668" height="400"></canvas>
+            <div class="canvas-hint" id="hint">캔버스를 클릭해서 위치를 바꿔보세요</div>
+        </div>
+
+        <!-- Info card -->
+        <div class="info-card card-blue" id="infoCard">
+            <div class="info-title" id="infoTitle">위치: "어디에 있는가"</div>
+            <div class="info-code" id="infoCode">FVector Pos = GetActorLocation();</div>
+            <div class="info-desc" id="infoDesc">월드 공간의 한 지점을 가리킵니다. 원점(0,0)에서 해당 좌표까지의 위치입니다.</div>
+        </div>
+
+        <div class="footer">
+            <strong>벡터는 그릇</strong>이고, 용도는 개발자가 정합니다
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const W = cv.width, H = cv.height;
+        const OX = 120, OY = H - 60; // origin position
+        const SCALE = 50; // pixels per unit
+
+        let tab = 0;
+        let vx = 3, vy = 4;
+        let dragging = false;
+
+        const tabData = [
+            {
+                color: '#2563eb',
+                colorLight: '#93c5fd',
+                activeClass: 'active-blue',
+                cardClass: 'card-blue',
+                valClass: 'blue',
+                title: '위치: "어디에 있는가"',
+                code: 'FVector Pos = GetActorLocation();',
+                desc: '월드 공간의 한 지점을 가리킵니다. 원점(0,0)에서 해당 좌표까지의 위치입니다.',
+                hint: '캔버스를 클릭해서 위치를 바꿔보세요',
+                magLabel: '원점에서 거리'
+            },
+            {
+                color: '#d97706',
+                colorLight: '#fcd34d',
+                activeClass: 'active-amber',
+                cardClass: 'card-amber',
+                valClass: 'amber',
+                title: '방향 + 거리: "어디로 얼마만큼"',
+                code: 'FVector Distance = Velocity * DeltaTime;',
+                desc: '현재 위치에서 어느 방향으로 얼마나 이동할지를 나타냅니다. 화살표의 방향이 이동 방향, 길이가 이동 거리입니다.',
+                hint: '드래그로 이동 방향과 거리를 바꿔보세요',
+                magLabel: '이동 거리'
+            },
+            {
+                color: '#10b981',
+                colorLight: '#6ee7b7',
+                activeClass: 'active-green',
+                cardClass: 'card-green',
+                valClass: 'green',
+                title: '방향만: "어디를 보는가"',
+                code: 'FVector Dir = GetActorForwardVector();',
+                desc: '크기가 항상 1인 단위 벡터입니다. "얼마나"는 빼고 "어디를"만 알려줍니다.',
+                hint: '드래그로 바라보는 방향을 바꿔보세요',
+                magLabel: '크기 (항상 1)'
+            }
+        ];
+
+        // === Tab switching ===
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tab = parseInt(btn.dataset.tab);
+                updateTab();
+                draw();
+            });
+        });
+
+        function updateTab() {
+            const d = tabData[tab];
+            tabBtns.forEach((b, i) => {
+                b.className = 'tab-btn' + (i === tab ? ' ' + tabData[i].activeClass : '');
+            });
+
+            document.getElementById('infoCard').className = 'info-card ' + d.cardClass;
+            document.getElementById('infoTitle').textContent = d.title;
+            document.getElementById('infoCode').textContent = d.code;
+            document.getElementById('infoDesc').textContent = d.desc;
+            document.getElementById('hint').textContent = d.hint;
+            document.getElementById('magLabel').textContent = d.magLabel;
+
+            document.querySelectorAll('.value-num').forEach(el => {
+                el.className = 'value-num ' + d.valClass;
+            });
+
+            updateValues();
+        }
+
+        function updateValues() {
+            if (tab === 2) {
+                const m = Math.sqrt(vx * vx + vy * vy);
+                const nx = m > 0.01 ? vx / m : 0;
+                const ny = m > 0.01 ? vy / m : 0;
+                document.getElementById('valX').textContent = nx.toFixed(2);
+                document.getElementById('valY').textContent = ny.toFixed(2);
+                document.getElementById('valMag').textContent = '1.00';
+            } else {
+                document.getElementById('valX').textContent = vx.toFixed(1);
+                document.getElementById('valY').textContent = vy.toFixed(1);
+                const mag = Math.sqrt(vx * vx + vy * vy);
+                document.getElementById('valMag').textContent = mag.toFixed(1);
+            }
+        }
+
+        // === Drawing ===
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            const d = tabData[tab];
+
+            drawGrid();
+
+            if (tab === 0) drawPosition(d);
+            else if (tab === 1) drawDisplacement(d);
+            else drawDirection(d);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 0.5;
+
+            // vertical lines
+            for (let x = OX; x <= W - 20; x += SCALE) {
+                ctx.beginPath(); ctx.moveTo(x, 20); ctx.lineTo(x, H - 20); ctx.stroke();
+            }
+            for (let x = OX - SCALE; x >= 20; x -= SCALE) {
+                ctx.beginPath(); ctx.moveTo(x, 20); ctx.lineTo(x, H - 20); ctx.stroke();
+            }
+            // horizontal lines
+            for (let y = OY; y >= 20; y -= SCALE) {
+                ctx.beginPath(); ctx.moveTo(20, y); ctx.lineTo(W - 20, y); ctx.stroke();
+            }
+            for (let y = OY + SCALE; y <= H - 20; y += SCALE) {
+                ctx.beginPath(); ctx.moveTo(20, y); ctx.lineTo(W - 20, y); ctx.stroke();
+            }
+
+            // axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(20, OY); ctx.lineTo(W - 20, OY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(OX, 20); ctx.lineTo(OX, H - 20); ctx.stroke();
+
+            // axis labels
+            ctx.fillStyle = '#bbb';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('X', W - 14, OY + 16);
+            ctx.fillText('Y', OX - 16, 28);
+
+            // origin
+            ctx.fillStyle = '#ccc';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'right';
+            ctx.fillText('(0,0)', OX - 8, OY + 18);
+        }
+
+        function toScreen(x, y) {
+            return [OX + x * SCALE, OY - y * SCALE];
+        }
+
+        function toWorld(sx, sy) {
+            return [(sx - OX) / SCALE, (OY - sy) / SCALE];
+        }
+
+        function drawArrow(fx, fy, tx, ty, color, lineW) {
+            const dx = tx - fx, dy = ty - fy;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len < 2) return;
+
+            const angle = Math.atan2(dy, dx);
+            const headLen = Math.min(14, len * 0.3);
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = lineW || 3;
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(tx, ty);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(tx - headLen * Math.cos(angle - 0.35), ty - headLen * Math.sin(angle - 0.35));
+            ctx.lineTo(tx - headLen * Math.cos(angle + 0.35), ty - headLen * Math.sin(angle + 0.35));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Tab 0: Position
+        function drawPosition(d) {
+            const [sx, sy] = toScreen(vx, vy);
+
+            // dashed lines to axes
+            ctx.strokeStyle = d.colorLight;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, OY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(OX, sy); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // axis ticks
+            ctx.fillStyle = d.color;
+            ctx.font = 'bold 13px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText(vx.toFixed(1), sx, OY + 18);
+            ctx.textAlign = 'right';
+            ctx.fillText(vy.toFixed(1), OX - 8, sy + 5);
+
+            // character icon
+            ctx.font = '32px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', sx, sy - 8);
+
+            // coordinate label
+            ctx.fillStyle = d.color;
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText(`(${vx.toFixed(1)}, ${vy.toFixed(1)})`, sx + 16, sy - 16);
+        }
+
+        // Tab 1: Displacement (direction + distance)
+        function drawDisplacement(d) {
+            // character at fixed origin area
+            const charX = OX + 1.5 * SCALE;
+            const charY = OY - 1 * SCALE;
+
+            const [tx, ty] = [charX + vx * SCALE, charY - vy * SCALE];
+
+            // ghost destination
+            ctx.globalAlpha = 0.25;
+            ctx.font = '28px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', tx, ty - 4);
+            ctx.globalAlpha = 1;
+
+            // arrow
+            drawArrow(charX, charY, tx, ty, d.color, 3);
+
+            // character at start
+            ctx.font = '32px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', charX, charY - 8);
+
+            // magnitude label on arrow
+            const mx = (charX + tx) / 2;
+            const my = (charY + ty) / 2;
+            const mag = Math.sqrt(vx * vx + vy * vy);
+            ctx.fillStyle = d.color;
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.textAlign = 'center';
+
+            const angle = Math.atan2(-(ty - charY), tx - charX);
+            const offX = -Math.sin(angle) * 18;
+            const offY = -Math.cos(angle) * 18;
+            ctx.fillText(`거리: ${mag.toFixed(1)}`, mx + offX, my - offY);
+
+            // direction label
+            ctx.fillStyle = '#999';
+            ctx.font = '13px Segoe UI';
+            ctx.fillText('시작', charX, charY + 24);
+            ctx.fillStyle = d.colorLight;
+            ctx.fillText('도착 예상', tx, ty + 20);
+        }
+
+        // Tab 2: Direction only (normalized)
+        function drawDirection(d) {
+            const charX = W / 2;
+            const charY = H / 2 + 10;
+
+            const mag = Math.sqrt(vx * vx + vy * vy);
+            if (mag < 0.01) return;
+
+            const nx = vx / mag;
+            const ny = vy / mag;
+
+            // unit circle
+            ctx.strokeStyle = '#e5e5e5';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.arc(charX, charY, SCALE * 1, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#ddd';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('반지름 = 1', charX + SCALE + 6, charY + 4);
+
+            // ghost: original vector (dimmed)
+            const origTx = charX + vx * SCALE * 0.6;
+            const origTy = charY - vy * SCALE * 0.6;
+            ctx.globalAlpha = 0.15;
+            drawArrow(charX, charY, origTx, origTy, '#aaa', 2);
+            ctx.globalAlpha = 1;
+
+            // original length label
+            ctx.fillStyle = '#ccc';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`원래 크기: ${mag.toFixed(1)}`, origTx + 10, origTy - 10);
+
+            // normalized arrow
+            const normTx = charX + nx * SCALE;
+            const normTy = charY - ny * SCALE;
+            drawArrow(charX, charY, normTx, normTy, d.color, 3.5);
+
+            // label
+            ctx.fillStyle = d.color;
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('크기 = 1', normTx + nx * 24, normTy - ny * 24);
+
+            // character
+            ctx.font = '32px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', charX, charY - 8);
+        }
+
+        // === Interaction ===
+        function getCanvasPos(e) {
+            const rect = cv.getBoundingClientRect();
+            const scaleX = W / rect.width;
+            const scaleY = H / rect.height;
+            const cx = (e.clientX - rect.left) * scaleX;
+            const cy = (e.clientY - rect.top) * scaleY;
+            return [cx, cy];
+        }
+
+        function handlePointer(e) {
+            const [cx, cy] = getCanvasPos(e);
+
+            if (tab === 0) {
+                // click sets position
+                const [wx, wy] = toWorld(cx, cy);
+                vx = Math.round(wx * 2) / 2;
+                vy = Math.round(wy * 2) / 2;
+                vx = Math.max(-1.5, Math.min(vx, 9));
+                vy = Math.max(-0.5, Math.min(vy, 6));
+            } else if (tab === 1) {
+                const charX = OX + 1.5 * SCALE;
+                const charY = OY - 1 * SCALE;
+                vx = (cx - charX) / SCALE;
+                vy = (charY - cy) / SCALE;
+                vx = Math.round(vx * 2) / 2;
+                vy = Math.round(vy * 2) / 2;
+                const mag = Math.sqrt(vx * vx + vy * vy);
+                if (mag > 8) { vx *= 8 / mag; vy *= 8 / mag; }
+            } else {
+                const charX = W / 2;
+                const charY = H / 2 + 10;
+                const dx = cx - charX;
+                const dy = charY - cy;
+                const m = Math.sqrt(dx * dx + dy * dy);
+                if (m > 5) {
+                    // keep original magnitude but change direction
+                    const origMag = Math.sqrt(vx * vx + vy * vy);
+                    const mag = Math.max(origMag, 2);
+                    vx = (dx / m) * mag;
+                    vy = (dy / m) * mag;
+                }
+            }
+
+            updateValues();
+            draw();
+        }
+
+        cv.addEventListener('mousedown', e => { dragging = true; handlePointer(e); });
+        cv.addEventListener('mousemove', e => { if (dragging) handlePointer(e); });
+        cv.addEventListener('mouseup', () => dragging = false);
+        cv.addEventListener('mouseleave', () => dragging = false);
+
+        cv.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; handlePointer(e.touches[0]); });
+        cv.addEventListener('touchmove', e => { e.preventDefault(); if (dragging) handlePointer(e.touches[0]); });
+        cv.addEventListener('touchend', () => dragging = false);
+
+        // === Init ===
+        updateTab();
+        draw();
+    </script>
+</body>
+</html>
