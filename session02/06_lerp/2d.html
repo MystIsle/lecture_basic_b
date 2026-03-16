@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Lerp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: #999;
+        }
+
+        /* Canvas */
+        .canvas-section {
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            border-radius: 8px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            cursor: grab;
+        }
+
+        canvas:active { cursor: grabbing; }
+
+        .canvas-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #bbb;
+            margin-top: 8px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .play-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #2563eb;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover { background: #dbeafe; }
+        .play-btn:active { transform: scale(0.95); }
+
+        .slider-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .slider-label .t-val {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e5e5;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Curve select */
+        .settings {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .setting-box {
+            flex: 1;
+            background: #fafafa;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .setting-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .radio-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 15px;
+            height: 15px;
+            accent-color: #7c3aed;
+            cursor: pointer;
+        }
+
+        .radio-group label {
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 14px;
+            background: #f5f3ff;
+            border: 1.5px solid #c4b5fd;
+            border-radius: 10px;
+        }
+
+        .footer strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2D Lerp</h1>
+            <p>A와 B를 드래그하고, t를 움직여 보간 지점을 확인하세요</p>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-section">
+            <canvas id="cv" width="668" height="440"></canvas>
+            <div class="canvas-hint">A(파랑), B(핑크)를 드래그해서 옮길 수 있습니다</div>
+        </div>
+
+        <!-- t slider + play -->
+        <div class="controls">
+            <button class="play-btn" id="playBtn">▶</button>
+            <div class="slider-wrap">
+                <div class="slider-label">
+                    <span>t</span>
+                    <span class="t-val" id="tLabel">0.00</span>
+                </div>
+                <input type="range" id="tSlider" min="0" max="1" step="0.005" value="0">
+            </div>
+        </div>
+
+        <!-- Curve -->
+        <div class="settings">
+            <div class="setting-box">
+                <div class="setting-label">커브</div>
+                <div class="radio-row">
+                    <div class="radio-group">
+                        <input type="radio" id="c_linear" name="curve" value="linear" checked>
+                        <label for="c_linear">선형</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="c_easeIn" name="curve" value="easeIn">
+                        <label for="c_easeIn">ease-in (t⁴)</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="c_easeOut" name="curve" value="easeOut">
+                        <label for="c_easeOut">ease-out</label>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-box" style="flex:0.6">
+                <div class="setting-label">재생 시간</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="range" id="durSlider" min="0.1" max="1" step="0.1" value="0.5" style="flex:1">
+                    <span id="durLabel" style="font-size:15px;font-weight:700;color:#7c3aed;min-width:32px">0.5s</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Lerp는 두 점 사이를 t만큼 보간</strong>하는 것이고, 위치뿐 아니라 색상·크기·회전 어디든 쓸 수 있습니다
+        </div>
+    </div>
+
+    <script>
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        const W = cv.width, H = cv.height;
+
+        const PAD = 40;
+        const GW = W - PAD * 2;
+        const GH = H - PAD * 2;
+        const GRID_X = 12;
+        const GRID_Y = 8;
+        const CELL_W = GW / GRID_X;
+        const CELL_H = GH / GRID_Y;
+
+        // State
+        let ax = 2, ay = 6;
+        let bx = 9, by = 2;
+        let t = 0;
+        let curve = 'linear';
+        let playing = false;
+        let playStart = null;
+        let playDuration = 0.5;
+        let animId = null;
+        let dragging = null; // 'a' or 'b'
+
+        const curves = {
+            linear: t => t,
+            easeIn: t => t * t * t * t,
+            easeOut: t => 1 - Math.pow(1 - t, 4)
+        };
+
+        // Coordinate transforms
+        function toScreen(gx, gy) {
+            return [PAD + gx * CELL_W, PAD + (GRID_Y - gy) * CELL_H];
+        }
+
+        function toGrid(sx, sy) {
+            return [(sx - PAD) / CELL_W, GRID_Y - (sy - PAD) / CELL_H];
+        }
+
+        function snap(v, min, max) {
+            return Math.round(Math.max(min, Math.min(max, v)) * 2) / 2;
+        }
+
+        // Drawing
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            drawGrid();
+
+            const ct = curves[curve](t);
+            const px = ax + (bx - ax) * ct;
+            const py = ay + (by - ay) * ct;
+
+            const [sax, say] = toScreen(ax, ay);
+            const [sbx, sby] = toScreen(bx, by);
+            const [spx, spy] = toScreen(px, py);
+
+            // Trail: dotted path from A to B
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(sax, say);
+            ctx.lineTo(sbx, sby);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Interpolated path (A to P)
+            ctx.strokeStyle = '#7c3aed';
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(sax, say);
+            ctx.lineTo(spx, spy);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            // t% marker on line
+            if (t > 0.02 && t < 0.98) {
+                const midLx = (sax + spx) / 2;
+                const midLy = (say + spy) / 2;
+                const angle = Math.atan2(sby - say, sbx - sax);
+                const offX = -Math.sin(angle) * 16;
+                const offY = Math.cos(angle) * 16;
+                ctx.fillStyle = '#7c3aed';
+                ctx.font = 'bold 12px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${(ct * 100).toFixed(0)}%`, midLx + offX, midLy + offY);
+            }
+
+            // Point A
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.arc(sax, say, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', sax, say);
+
+            // Point B
+            ctx.fillStyle = '#be185d';
+            ctx.beginPath();
+            ctx.arc(sbx, sby, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px Segoe UI';
+            ctx.fillText('B', sbx, sby);
+
+            // Point P (interpolated)
+            ctx.fillStyle = '#7c3aed';
+            ctx.beginPath();
+            ctx.arc(spx, spy, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(spx, spy, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // P label
+            ctx.fillStyle = '#7c3aed';
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`P`, spx + 14, spy - 6);
+            ctx.font = '12px Courier New';
+            ctx.fillText(`(${px.toFixed(1)}, ${py.toFixed(1)})`, spx + 14, spy + 10);
+
+            // A/B coordinate labels
+            ctx.fillStyle = '#2563eb';
+            ctx.font = '12px Courier New';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`(${ax.toFixed(1)}, ${ay.toFixed(1)})`, sax, say + 18);
+
+            ctx.fillStyle = '#be185d';
+            ctx.fillText(`(${bx.toFixed(1)}, ${by.toFixed(1)})`, sbx, sby + 18);
+
+            updateValues();
+        }
+
+        function drawGrid() {
+            // grid lines
+            ctx.strokeStyle = '#f5f5f5';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= GRID_X; i++) {
+                const x = PAD + i * CELL_W;
+                ctx.beginPath(); ctx.moveTo(x, PAD); ctx.lineTo(x, PAD + GH); ctx.stroke();
+            }
+            for (let i = 0; i <= GRID_Y; i++) {
+                const y = PAD + i * CELL_H;
+                ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(PAD + GW, y); ctx.stroke();
+            }
+
+            // axes
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1.5;
+            // X axis (y=0)
+            const [, y0] = toScreen(0, 0);
+            ctx.beginPath(); ctx.moveTo(PAD, y0); ctx.lineTo(PAD + GW, y0); ctx.stroke();
+            // Y axis (x=0)
+            const [x0] = toScreen(0, 0);
+            ctx.beginPath(); ctx.moveTo(x0, PAD); ctx.lineTo(x0, PAD + GH); ctx.stroke();
+
+            // tick labels
+            ctx.fillStyle = '#ccc';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            for (let i = 0; i <= GRID_X; i += 2) {
+                const x = PAD + i * CELL_W;
+                ctx.fillText(i, x, PAD + GH + 6);
+            }
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i <= GRID_Y; i += 2) {
+                const y = PAD + (GRID_Y - i) * CELL_H;
+                ctx.fillText(i, PAD - 8, y);
+            }
+        }
+
+        function updateValues() {
+            document.getElementById('tLabel').textContent = t.toFixed(2);
+        }
+
+        // Interaction: drag A/B
+        function getCanvasPos(e) {
+            const rect = cv.getBoundingClientRect();
+            return [
+                (e.clientX - rect.left) * (W / rect.width),
+                (e.clientY - rect.top) * (H / rect.height)
+            ];
+        }
+
+        function hitTest(sx, sy) {
+            const [sax, say] = toScreen(ax, ay);
+            const [sbx, sby] = toScreen(bx, by);
+            const da = Math.hypot(sx - sax, sy - say);
+            const db = Math.hypot(sx - sbx, sy - sby);
+            if (da < 24) return 'a';
+            if (db < 24) return 'b';
+            return null;
+        }
+
+        cv.addEventListener('mousedown', e => {
+            const [sx, sy] = getCanvasPos(e);
+            dragging = hitTest(sx, sy);
+        });
+
+        cv.addEventListener('mousemove', e => {
+            if (!dragging) {
+                const [sx, sy] = getCanvasPos(e);
+                cv.style.cursor = hitTest(sx, sy) ? 'grab' : 'default';
+                return;
+            }
+            const [sx, sy] = getCanvasPos(e);
+            const [gx, gy] = toGrid(sx, sy);
+            if (dragging === 'a') {
+                ax = snap(gx, 0, GRID_X);
+                ay = snap(gy, 0, GRID_Y);
+            } else {
+                bx = snap(gx, 0, GRID_X);
+                by = snap(gy, 0, GRID_Y);
+            }
+            draw();
+        });
+
+        cv.addEventListener('mouseup', () => dragging = null);
+        cv.addEventListener('mouseleave', () => dragging = null);
+
+        // Touch
+        cv.addEventListener('touchstart', e => {
+            e.preventDefault();
+            const [sx, sy] = getCanvasPos(e.touches[0]);
+            dragging = hitTest(sx, sy);
+        });
+        cv.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (!dragging) return;
+            const [sx, sy] = getCanvasPos(e.touches[0]);
+            const [gx, gy] = toGrid(sx, sy);
+            if (dragging === 'a') {
+                ax = snap(gx, 0, GRID_X);
+                ay = snap(gy, 0, GRID_Y);
+            } else {
+                bx = snap(gx, 0, GRID_X);
+                by = snap(gy, 0, GRID_Y);
+            }
+            draw();
+        });
+        cv.addEventListener('touchend', () => dragging = null);
+
+        // t slider
+        const tSlider = document.getElementById('tSlider');
+        tSlider.addEventListener('input', e => {
+            t = parseFloat(e.target.value);
+            if (playing) stopPlay();
+            draw();
+        });
+
+        // Play button
+        const playBtn = document.getElementById('playBtn');
+        function startPlay() {
+            playing = true;
+            playStart = null;
+            playBtn.textContent = '⏸';
+            animId = requestAnimationFrame(playTick);
+        }
+
+        function stopPlay() {
+            playing = false;
+            playBtn.textContent = '▶';
+            if (animId) cancelAnimationFrame(animId);
+            animId = null;
+        }
+
+        function playTick(now) {
+            if (!playStart) playStart = now;
+            const elapsed = (now - playStart) / 1000;
+            t = Math.min(elapsed / playDuration, 1);
+            tSlider.value = t;
+            draw();
+            if (t < 1) {
+                animId = requestAnimationFrame(playTick);
+            } else {
+                stopPlay();
+            }
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (playing) {
+                stopPlay();
+            } else {
+                if (t >= 0.99) t = 0;
+                startPlay();
+            }
+        });
+
+        // Curve radio
+        document.querySelectorAll('input[name="curve"]').forEach(r => {
+            r.addEventListener('change', e => {
+                curve = e.target.value;
+                draw();
+            });
+        });
+
+        // Duration
+        const durSlider = document.getElementById('durSlider');
+        durSlider.addEventListener('input', e => {
+            playDuration = parseFloat(e.target.value);
+            document.getElementById('durLabel').textContent = playDuration.toFixed(1) + 's';
+        });
+
+        // Init
+        draw();
+    </script>
+</body>
+</html>
