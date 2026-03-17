@@ -199,7 +199,7 @@
   }
 
   .node.design-badge::after {
-    content: '디자인';
+    content: '설계';
     position: absolute;
     top: -8px;
     right: -8px;
@@ -284,13 +284,13 @@
   <div class="card"><div class="num c-blue">12</div><div class="label">필수 기능</div></div>
   <div class="card"><div class="num c-amber">19</div><div class="label">도전 기능</div></div>
   <div class="card"><div class="num c-slate">26</div><div class="label">필수 최대 점수</div></div>
-  <div class="card"><div class="num c-green">9</div><div class="label">디자인 채점 항목</div></div>
+  <div class="card"><div class="num c-green">9</div><div class="label">설계 채점 항목</div></div>
 </div>
 
 <div class="legend">
   <div class="legend-item"><div class="dot req"></div> 필수 — CH3 커리큘럼 기반</div>
   <div class="legend-item"><div class="dot cha"></div> 도전 — 선택적 확장</div>
-  <div class="legend-item"><div class="dot des"></div> 디자인 채점 적용</div>
+  <div class="legend-item"><div class="dot des"></div> 설계 채점 적용</div>
 </div>
 
 <div class="tree" id="tree"></div>
@@ -443,7 +443,7 @@ categories.forEach(cat => {
         html += `<div class="t-tags">`;
         html += `<span class="tag t-pts">${item.p}점</span>`;
         if (item.s) html += `<span class="tag t-diff">${item.s}</span>`;
-        if (item.des) html += `<span class="tag t-des">디자인 채점</span>`;
+        if (item.des) html += `<span class="tag t-des">설계 채점</span>`;
         html += `</div>`;
         tooltip.innerHTML = html;
         tooltip.classList.add('show');
