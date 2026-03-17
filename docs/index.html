@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH4 Alt. Assignment — Quarter-View Melee Action</title>
+<title>CH4 대안 과제 — 쿼터뷰 밀리 액션</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Noto Sans KR', 'Inter', -apple-system, 'Segoe UI', sans-serif;
     background: #fafafa;
     color: #1a1a1a;
     min-height: 100vh;
@@ -199,7 +199,7 @@
   }
 
   .node.design-badge::after {
-    content: 'Design';
+    content: '디자인';
     position: absolute;
     top: -8px;
     right: -8px;
@@ -276,27 +276,27 @@
 <body>
 
 <div class="header">
-  <h1>CH4 Alt. Assignment — Quarter-View Melee Action</h1>
-  <div class="sub">For students not participating in CH4 multiplayer · 5–6 person teams · 3–4 weeks (20 working days)</div>
+  <h1>CH4 대안 과제 — 쿼터뷰 밀리 액션</h1>
+  <div class="sub">CH4 멀티플레이 미참여 학생 대상 · 5~6인 팀 · 3~4주 (작업일 20일)</div>
 </div>
 
 <div class="summary">
-  <div class="card"><div class="num c-blue">12</div><div class="label">Required Features</div></div>
-  <div class="card"><div class="num c-amber">19</div><div class="label">Challenge Features</div></div>
-  <div class="card"><div class="num c-slate">26</div><div class="label">Required Max Score</div></div>
-  <div class="card"><div class="num c-green">9</div><div class="label">Design-Scored Items</div></div>
+  <div class="card"><div class="num c-blue">12</div><div class="label">필수 기능</div></div>
+  <div class="card"><div class="num c-amber">19</div><div class="label">도전 기능</div></div>
+  <div class="card"><div class="num c-slate">26</div><div class="label">필수 최대 점수</div></div>
+  <div class="card"><div class="num c-green">9</div><div class="label">디자인 채점 항목</div></div>
 </div>
 
 <div class="legend">
-  <div class="legend-item"><div class="dot req"></div> Required — Based on CH3 curriculum</div>
-  <div class="legend-item"><div class="dot cha"></div> Challenge — Optional expansion</div>
-  <div class="legend-item"><div class="dot des"></div> Design scoring applied</div>
+  <div class="legend-item"><div class="dot req"></div> 필수 — CH3 커리큘럼 기반</div>
+  <div class="legend-item"><div class="dot cha"></div> 도전 — 선택적 확장</div>
+  <div class="legend-item"><div class="dot des"></div> 디자인 채점 적용</div>
 </div>
 
 <div class="tree" id="tree"></div>
 
 <div class="footer">
-  <p>The large number of challenge features is intentional — they are various options laid out for game expansion.<br>You don't have to do all of them. Pick the ones you want to try and challenge yourself.</p>
+  <p>도전 기능 수가 많은 건 게임 확장에 쓸 수 있는 여러 선택지를 일부러 깔아둔 것입니다.<br>전부 할 필요 없습니다. 하고 싶은 것만 골라서 도전하세요.</p>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
@@ -304,40 +304,40 @@
 <script>
 const categories = [
   {
-    name: 'Character', icon: '🏃', color: '#6366f1', bg: '#eef2ff',
+    name: '캐릭터', icon: '🏃', color: '#6366f1', bg: '#eef2ff',
     flows: [
       [
-        { n: 'Quarter-View Movement', t: 'req', p: 2, d: 'Quarter-view camera via SpringArm angle, Enhanced Input for WASD / Jump / Sprint' },
+        { n: '쿼터뷰 이동', t: 'req', p: 2, d: 'SpringArm 각도로 쿼터뷰 카메라, Enhanced Input으로 WASD / 점프 / 달리기' },
       ]
     ]
   },
   {
-    name: 'Animation', icon: '🎭', color: '#8b5cf6', bg: '#f5f3ff',
+    name: '애니메이션', icon: '🎭', color: '#8b5cf6', bg: '#f5f3ff',
     flows: [
       [
-        { n: 'State Transitions', t: 'req', p: 2, d: 'Idle / Walk / Run / Jump / Attack / Die — State Machine in AnimBP' },
-        { n: 'Root Motion + Motion Warping', t: 'cha', p: 3, s: '★★★★', d: 'Root motion-based movement with motion warping for target correction' },
+        { n: '상태 전환', t: 'req', p: 2, d: 'Idle / Walk / Run / Jump / Attack / Die — AnimBP 스테이트 머신' },
+        { n: '루트 모션 + 모션 워핑', t: 'cha', p: 3, s: '★★★★', d: '루트 모션 기반 이동 + 모션 워핑으로 타겟 보정' },
       ]
     ]
   },
   {
-    name: 'Combat', icon: '⚔️', color: '#dc2626', bg: '#fef2f2',
+    name: '전투', icon: '⚔️', color: '#dc2626', bg: '#fef2f2',
     flows: [
       [
-        { n: 'Melee Attack', t: 'req', p: 3, des: true, d: 'Attack toward facing direction (character rotates on directional input during attack), Overlap / Sweep hit detection' },
-        { n: 'AnimMontage', t: 'cha', p: 2, s: '★★', d: 'Montage-based attack — upgrades the required melee attack' },
-        { n: 'AnimNotify', t: 'cha', p: 1, s: '★★', d: 'Hit-timing notify, effect & sound triggers' },
-        { n: 'Combo Attack', t: 'cha', p: 3, s: '★★★', des: true, d: '2–3 hit combo chain on sequential input' },
+        { n: '밀리 공격', t: 'req', p: 3, des: true, d: '바라보는 방향으로 공격 (공격 중 방향 입력 시 캐릭터 회전), Overlap / Sweep 판정' },
+        { n: '애님몽타주', t: 'cha', p: 2, s: '★★', d: '몽타주 기반 공격 — 필수 밀리 공격의 업그레이드' },
+        { n: '애님노티파이', t: 'cha', p: 1, s: '★★', d: '히트 타이밍 노티파이, 이펙트 & 사운드 트리거' },
+        { n: '콤보 공격', t: 'cha', p: 3, s: '★★★', des: true, d: '연속 입력으로 2~3타 콤보 체인' },
       ],
       [
-        { n: 'Health / Damage', t: 'req', p: 1, d: 'Player & monster HP, hit / heal processing' },
-        { n: 'Hit Stagger & Knockback', t: 'cha', p: 1, s: '★★', d: 'Stagger + directional knockback on hit' },
-        { n: 'Hit Reaction', t: 'cha', p: 2, s: '★★★', d: 'Hit animation, action cancel, invincibility frames' },
-        { n: 'Super Armor', t: 'cha', p: 1, s: '★★★', d: 'Ignore hit stagger during certain actions' },
+        { n: '체력 / 데미지', t: 'req', p: 1, d: '플레이어 & 몬스터 HP, 피격 / 회복 처리' },
+        { n: '피격 경직 & 넉백', t: 'cha', p: 1, s: '★★', d: '경직 + 방향성 넉백 처리' },
+        { n: '피격 리액션', t: 'cha', p: 2, s: '★★★', d: '피격 애니메이션, 액션 캔슬, 무적 프레임' },
+        { n: '슈퍼아머', t: 'cha', p: 1, s: '★★★', d: '특정 액션 중 피격 경직 무시' },
       ],
       [
-        { n: 'Auto-Aim Correction', t: 'cha', p: 2, s: '★★★', d: 'Auto-target nearest enemy in melee range' },
-        { n: 'Projectile', t: 'cha', p: 2, s: '★★★', d: 'Ranged skill / projectile via ProjectileMovementComponent' },
+        { n: '자동 조준 보정', t: 'cha', p: 2, s: '★★★', d: '밀리 범위 내 가장 가까운 적 자동 타겟팅' },
+        { n: '투사체', t: 'cha', p: 2, s: '★★★', d: 'ProjectileMovementComponent로 원거리 스킬 / 투사체' },
       ],
     ]
   },
@@ -345,35 +345,35 @@ const categories = [
     name: 'AI', icon: '🧠', color: '#0891b2', bg: '#ecfeff',
     flows: [
       [
-        { n: 'Enemy AI', t: 'req', p: 5, des: true, d: 'FSM or Behavior Tree-based chase & attack' },
-        { n: 'AI Pattern Expansion', t: 'cha', p: 1, s: '★★', d: 'Add 1+ pattern beyond chase (patrol, flee, ranged, etc.)' },
+        { n: '적 AI', t: 'req', p: 5, des: true, d: 'FSM 또는 비헤이비어 트리 기반 추적 & 공격' },
+        { n: 'AI 패턴 확장', t: 'cha', p: 1, s: '★★', d: '추적 외 1개 이상 패턴 추가 (순찰, 도주, 원거리 등)' },
       ],
       [
-        { n: '2+ Monster Types', t: 'req', p: 2, d: 'At least 2 monster types with different behavior patterns' },
-        { n: 'Boss Monster', t: 'cha', p: 5, s: '★★★★', des: true, d: 'Multi-pattern + phase-based boss design' },
+        { n: '몬스터 2종 이상', t: 'req', p: 2, d: '서로 다른 행동 패턴의 몬스터 최소 2종' },
+        { n: '보스 몬스터', t: 'cha', p: 5, s: '★★★★', des: true, d: '멀티 패턴 + 페이즈 기반 보스 설계' },
       ],
     ]
   },
   {
-    name: 'Systems', icon: '⚙️', color: '#0d9488', bg: '#f0fdfa',
+    name: '시스템', icon: '⚙️', color: '#0d9488', bg: '#f0fdfa',
     flows: [
       [
-        { n: 'Items', t: 'req', p: 3, des: true, d: 'BaseItem parent class inheritance, collision-based pickup (heal, etc.)' },
-        { n: 'Buff System', t: 'cha', p: 4, s: '★★★★', des: true, d: 'Time-based buffs from items (attack speed, move speed, ATK, etc.)' },
+        { n: '아이템 시스템', t: 'req', p: 3, des: true, d: 'BaseItem 부모 클래스 상속, 충돌 기반 획득 (회복 등)' },
+        { n: '버프 시스템', t: 'cha', p: 4, s: '★★★★', des: true, d: '아이템에서 시간 기반 버프 (공격속도, 이동속도, 공격력 등)' },
       ],
       [
-        { n: 'Monster Placement', t: 'req', p: 1, d: 'Map placement or dynamic spawn (any method)' },
-        { n: 'Regen Zone', t: 'cha', p: 3, s: '★★★', des: true, d: 'N spawns → kill → cooldown regen, BP component swap' },
+        { n: '몬스터 배치', t: 'req', p: 1, d: '맵 배치 또는 동적 스폰 (방식 자유)' },
+        { n: '리젠 구역', t: 'cha', p: 3, s: '★★★', des: true, d: 'N마리 스폰 → 처치 → 쿨타임 리젠, BP 컴포넌트 교체' },
       ],
       [
-        { n: 'Score / Game Loop', t: 'req', p: 3, des: true, d: 'GameState Start → Play → Clear / Game Over, level transitions' },
+        { n: '점수 / 게임 루프', t: 'req', p: 3, des: true, d: 'GameState 시작 → 플레이 → 클리어 / 게임오버, 레벨 전환' },
       ],
       [
-        { n: 'Trigger System', t: 'cha', p: 3, s: '★★★', des: true, d: 'Extensible parent class (doors, treasure chests, traps, switches, portals)' },
-        { n: 'NPC Speech Bubble', t: 'cha', p: 1, s: '★★', d: 'Trigger-based speech bubble UI on proximity' },
+        { n: '트리거 시스템', t: 'cha', p: 3, s: '★★★', des: true, d: '확장 가능한 부모 클래스 (문, 보물상자, 스위치, 포탈)' },
+        { n: 'NPC 말풍선', t: 'cha', p: 1, s: '★★', d: '근접 시 트리거 기반 말풍선 UI' },
       ],
       [
-        { n: 'Subsystem', t: 'cha', p: 3, s: '★★★', des: true, d: 'Implement manager-class as UE Subsystem (monster mgr, item mgr, etc.)' },
+        { n: '서브시스템 활용', t: 'cha', p: 3, s: '★★★', des: true, d: 'UE Subsystem으로 매니저 클래스 구현 (몬스터 관리, 아이템 관리 등)' },
       ],
     ]
   },
@@ -381,12 +381,12 @@ const categories = [
     name: 'UI', icon: '🖥️', color: '#7c3aed', bg: '#f5f3ff',
     flows: [
       [
-        { n: 'HUD + Menu', t: 'req', p: 2, d: 'Game-appropriate HUD and menu, freely structured' },
-        { n: 'UserWidget', t: 'cha', p: 1, s: '★★', d: '3D health bar via WidgetComponent' },
+        { n: 'HUD + 메뉴', t: 'req', p: 2, d: '게임에 맞는 HUD와 메뉴, 구성 자유' },
+        { n: 'UserWidget', t: 'cha', p: 1, s: '★★', d: 'WidgetComponent로 3D 체력바' },
       ],
       [
-        { n: 'Contextual UI', t: 'req', p: 1, d: 'Situation-appropriate info display (combat, exploration, events)' },
-        { n: 'UI Animation', t: 'cha', p: 1, s: '★★', d: 'UMG Animation, code/plugin-based tweens' },
+        { n: '상황별 UI', t: 'req', p: 1, d: '상황에 맞는 정보 표시 (전투, 탐색, 이벤트)' },
+        { n: 'UI 애니메이션', t: 'cha', p: 1, s: '★★', d: 'UMG Animation, 코드/플러그인 기반 트윈' },
       ],
     ]
   },
@@ -394,8 +394,8 @@ const categories = [
     name: 'VFX / SFX', icon: '✨', color: '#ea580c', bg: '#fff7ed',
     flows: [
       [
-        { n: 'Effects & Sound', t: 'req', p: 1, d: 'Particles & sound placed as needed' },
-        { n: 'Dissolve Death', t: 'cha', p: 2, s: '★★★', d: 'Material Dissolve (Opacity Mask + Timeline)' },
+        { n: '이펙트 & 사운드', t: 'req', p: 1, d: '필요한 곳에 파티클 & 사운드 배치' },
+        { n: '디졸브 사망', t: 'cha', p: 2, s: '★★★', d: 'Material Dissolve (Opacity Mask + Timeline)' },
       ],
     ]
   },
@@ -414,7 +414,7 @@ categories.forEach(cat => {
     <div class="cat-header">
       <div class="cat-icon" style="background:${cat.bg};color:${cat.color}">${cat.icon}</div>
       <div class="cat-name">${cat.name}</div>
-      <div class="cat-count">${reqCount > 0 ? `Req. ${reqCount}` : ''}${reqCount > 0 && chaCount > 0 ? ' · ' : ''}${chaCount > 0 ? `Challenge ${chaCount}` : ''}</div>
+      <div class="cat-count">${reqCount > 0 ? `필수 ${reqCount}` : ''}${reqCount > 0 && chaCount > 0 ? ' · ' : ''}${chaCount > 0 ? `도전 ${chaCount}` : ''}</div>
     </div>`;
 
   const body = document.createElement('div');
@@ -434,16 +434,16 @@ categories.forEach(cat => {
       node.className = `node ${item.t}${item.des ? ' design-badge' : ''}`;
       let inner = item.n;
       if (item.s) inner += ` <span class="diff-stars">${item.s}</span>`;
-      inner += ` <span class="pts">${item.p}p</span>`;
+      inner += ` <span class="pts">${item.p}점</span>`;
       node.innerHTML = inner;
 
       node.addEventListener('mouseenter', () => {
         let html = `<div class="t-name ${item.t}">${item.n}</div>`;
         html += `<div class="t-desc">${item.d}</div>`;
         html += `<div class="t-tags">`;
-        html += `<span class="tag t-pts">${item.p} pts</span>`;
+        html += `<span class="tag t-pts">${item.p}점</span>`;
         if (item.s) html += `<span class="tag t-diff">${item.s}</span>`;
-        if (item.des) html += `<span class="tag t-des">Design Scored</span>`;
+        if (item.des) html += `<span class="tag t-des">디자인 채점</span>`;
         html += `</div>`;
         tooltip.innerHTML = html;
         tooltip.classList.add('show');
