@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH4 Alt. Assignment — Quarter-View Melee Action</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    background: #fafafa;
+    color: #1a1a1a;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    padding: 48px 40px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: -1.2px;
+    margin-bottom: 8px;
+  }
+  .header .sub {
+    font-size: 1.05rem;
+    color: #888;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .summary {
+    max-width: 1200px;
+    margin: 0 auto 36px;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 700px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .header h1 { font-size: 1.6rem; }
+    .header, .summary, .legend, .tree, .footer { padding-left: 20px; padding-right: 20px; }
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+    padding: 22px 24px;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .card .num {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card .num.c-blue { color: #2563eb; }
+  .card .num.c-amber { color: #d97706; }
+  .card .num.c-slate { color: #334155; }
+  .card .num.c-green { color: #059669; }
+  .card .label {
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 500;
+  }
+
+  .legend {
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    padding: 0 40px;
+    display: flex;
+    gap: 32px;
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+  }
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 16px; height: 16px; border-radius: 5px; }
+  .dot.req { background: #2563eb; }
+  .dot.cha { background: #d97706; }
+  .dot.des { background: #059669; }
+
+  .tree {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .cat-section {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .cat-section:hover { box-shadow: 0 2px 16px rgba(0,0,0,0.05); }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 28px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .cat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .cat-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111;
+  }
+  .cat-count {
+    margin-left: auto;
+    font-size: 0.88rem;
+    color: #aaa;
+    font-weight: 500;
+  }
+
+  .cat-body {
+    padding: 22px 28px 26px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .flow-row:last-child { margin-bottom: 0; }
+
+  .node {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: default;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .node:hover { transform: translateY(-1px); }
+
+  .node.req {
+    background: #eff6ff;
+    border: 1.5px solid #bfdbfe;
+    color: #1d4ed8;
+  }
+  .node.req:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    box-shadow: 0 3px 12px rgba(37,99,235,0.12);
+  }
+
+  .node.cha {
+    background: #fffbeb;
+    border: 1.5px solid #fde68a;
+    color: #b45309;
+  }
+  .node.cha:hover {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    box-shadow: 0 3px 12px rgba(217,119,6,0.12);
+  }
+
+  .node .pts {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.06);
+  }
+  .node .diff-stars {
+    font-size: 0.75rem;
+    color: #d97706;
+    letter-spacing: -1px;
+  }
+
+  .node.design-badge::after {
+    content: 'Design';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #059669;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .arrow-connector {
+    color: #ccc;
+    font-size: 1.3rem;
+    font-weight: 300;
+    user-select: none;
+  }
+
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 18px 22px;
+    max-width: 400px;
+    z-index: 999;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    pointer-events: none;
+  }
+  .tooltip.show { display: block; }
+  .tooltip .t-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .tooltip .t-name.req { color: #1d4ed8; }
+  .tooltip .t-name.cha { color: #b45309; }
+  .tooltip .t-desc {
+    font-size: 0.92rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .tooltip .t-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tooltip .tag {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .tag.t-pts { background: #eff6ff; color: #2563eb; }
+  .tag.t-diff { background: #fffbeb; color: #b45309; }
+  .tag.t-des { background: #ecfdf5; color: #059669; }
+
+  .footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 48px;
+    text-align: center;
+  }
+  .footer p {
+    font-size: 0.95rem;
+    color: #999;
+    line-height: 1.7;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 22px 28px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CH4 Alt. Assignment — Quarter-View Melee Action</h1>
+  <div class="sub">For students not participating in CH4 multiplayer · 5–6 person teams · 3–4 weeks (20 working days)</div>
+</div>
+
+<div class="summary">
+  <div class="card"><div class="num c-blue">12</div><div class="label">Required Features</div></div>
+  <div class="card"><div class="num c-amber">19</div><div class="label">Challenge Features</div></div>
+  <div class="card"><div class="num c-slate">26</div><div class="label">Required Max Score</div></div>
+  <div class="card"><div class="num c-green">9</div><div class="label">Design-Scored Items</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot req"></div> Required — Based on CH3 curriculum</div>
+  <div class="legend-item"><div class="dot cha"></div> Challenge — Optional expansion</div>
+  <div class="legend-item"><div class="dot des"></div> Design scoring applied</div>
+</div>
+
+<div class="tree" id="tree"></div>
+
+<div class="footer">
+  <p>The large number of challenge features is intentional — they are various options laid out for game expansion.<br>You don't have to do all of them. Pick the ones you want to try and challenge yourself.</p>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const categories = [
+  {
+    name: 'Character', icon: '🏃', color: '#6366f1', bg: '#eef2ff',
+    flows: [
+      [
+        { n: 'Quarter-View Movement', t: 'req', p: 2, d: 'Quarter-view camera via SpringArm angle, Enhanced Input for WASD / Jump / Sprint' },
+      ]
+    ]
+  },
+  {
+    name: 'Animation', icon: '🎭', color: '#8b5cf6', bg: '#f5f3ff',
+    flows: [
+      [
+        { n: 'State Transitions', t: 'req', p: 2, d: 'Idle / Walk / Run / Jump / Attack / Die — State Machine in AnimBP' },
+        { n: 'Root Motion + Motion Warping', t: 'cha', p: 3, s: '★★★★', d: 'Root motion-based movement with motion warping for target correction' },
+      ]
+    ]
+  },
+  {
+    name: 'Combat', icon: '⚔️', color: '#dc2626', bg: '#fef2f2',
+    flows: [
+      [
+        { n: 'Melee Attack', t: 'req', p: 3, des: true, d: 'Attack toward facing direction (character rotates on directional input during attack), Overlap / Sweep hit detection' },
+        { n: 'AnimMontage', t: 'cha', p: 2, s: '★★', d: 'Montage-based attack — upgrades the required melee attack' },
+        { n: 'AnimNotify', t: 'cha', p: 1, s: '★★', d: 'Hit-timing notify, effect & sound triggers' },
+        { n: 'Combo Attack', t: 'cha', p: 3, s: '★★★', des: true, d: '2–3 hit combo chain on sequential input' },
+      ],
+      [
+        { n: 'Health / Damage', t: 'req', p: 1, d: 'Player & monster HP, hit / heal processing' },
+        { n: 'Hit Stagger & Knockback', t: 'cha', p: 1, s: '★★', d: 'Stagger + directional knockback on hit' },
+        { n: 'Hit Reaction', t: 'cha', p: 2, s: '★★★', d: 'Hit animation, action cancel, invincibility frames' },
+        { n: 'Super Armor', t: 'cha', p: 1, s: '★★★', d: 'Ignore hit stagger during certain actions' },
+      ],
+      [
+        { n: 'Auto-Aim Correction', t: 'cha', p: 2, s: '★★★', d: 'Auto-target nearest enemy in melee range' },
+        { n: 'Projectile', t: 'cha', p: 2, s: '★★★', d: 'Ranged skill / projectile via ProjectileMovementComponent' },
+      ],
+    ]
+  },
+  {
+    name: 'AI', icon: '🧠', color: '#0891b2', bg: '#ecfeff',
+    flows: [
+      [
+        { n: 'Enemy AI', t: 'req', p: 5, des: true, d: 'FSM or Behavior Tree-based chase & attack' },
+        { n: 'AI Pattern Expansion', t: 'cha', p: 1, s: '★★', d: 'Add 1+ pattern beyond chase (patrol, flee, ranged, etc.)' },
+      ],
+      [
+        { n: '2+ Monster Types', t: 'req', p: 2, d: 'At least 2 monster types with different behavior patterns' },
+        { n: 'Boss Monster', t: 'cha', p: 5, s: '★★★★', des: true, d: 'Multi-pattern + phase-based boss design' },
+      ],
+    ]
+  },
+  {
+    name: 'Systems', icon: '⚙️', color: '#0d9488', bg: '#f0fdfa',
+    flows: [
+      [
+        { n: 'Items', t: 'req', p: 3, des: true, d: 'BaseItem parent class inheritance, collision-based pickup (heal, etc.)' },
+        { n: 'Buff System', t: 'cha', p: 4, s: '★★★★', des: true, d: 'Time-based buffs from items (attack speed, move speed, ATK, etc.)' },
+      ],
+      [
+        { n: 'Monster Placement', t: 'req', p: 1, d: 'Map placement or dynamic spawn (any method)' },
+        { n: 'Regen Zone', t: 'cha', p: 3, s: '★★★', des: true, d: 'N spawns → kill → cooldown regen, BP component swap' },
+      ],
+      [
+        { n: 'Score / Game Loop', t: 'req', p: 3, des: true, d: 'GameState Start → Play → Clear / Game Over, level transitions' },
+      ],
+      [
+        { n: 'Trigger System', t: 'cha', p: 3, s: '★★★', des: true, d: 'Extensible parent class (doors, treasure chests, traps, switches, portals)' },
+        { n: 'NPC Speech Bubble', t: 'cha', p: 1, s: '★★', d: 'Trigger-based speech bubble UI on proximity' },
+      ],
+      [
+        { n: 'Subsystem', t: 'cha', p: 3, s: '★★★', des: true, d: 'Implement manager-class as UE Subsystem (monster mgr, item mgr, etc.)' },
+      ],
+    ]
+  },
+  {
+    name: 'UI', icon: '🖥️', color: '#7c3aed', bg: '#f5f3ff',
+    flows: [
+      [
+        { n: 'HUD + Menu', t: 'req', p: 2, d: 'Game-appropriate HUD and menu, freely structured' },
+        { n: 'UserWidget', t: 'cha', p: 1, s: '★★', d: '3D health bar via WidgetComponent' },
+      ],
+      [
+        { n: 'Contextual UI', t: 'req', p: 1, d: 'Situation-appropriate info display (combat, exploration, events)' },
+        { n: 'UI Animation', t: 'cha', p: 1, s: '★★', d: 'UMG Animation, code/plugin-based tweens' },
+      ],
+    ]
+  },
+  {
+    name: 'VFX / SFX', icon: '✨', color: '#ea580c', bg: '#fff7ed',
+    flows: [
+      [
+        { n: 'Effects & Sound', t: 'req', p: 1, d: 'Particles & sound placed as needed' },
+        { n: 'Dissolve Death', t: 'cha', p: 2, s: '★★★', d: 'Material Dissolve (Opacity Mask + Timeline)' },
+      ],
+    ]
+  },
+];
+
+const tree = document.getElementById('tree');
+const tooltip = document.getElementById('tooltip');
+
+categories.forEach(cat => {
+  const section = document.createElement('div');
+  section.className = 'cat-section';
+  const reqCount = cat.flows.flat().filter(i => i.t === 'req').length;
+  const chaCount = cat.flows.flat().filter(i => i.t === 'cha').length;
+
+  section.innerHTML = `
+    <div class="cat-header">
+      <div class="cat-icon" style="background:${cat.bg};color:${cat.color}">${cat.icon}</div>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-count">${reqCount > 0 ? `Req. ${reqCount}` : ''}${reqCount > 0 && chaCount > 0 ? ' · ' : ''}${chaCount > 0 ? `Challenge ${chaCount}` : ''}</div>
+    </div>`;
+
+  const body = document.createElement('div');
+  body.className = 'cat-body';
+
+  cat.flows.forEach(flow => {
+    const row = document.createElement('div');
+    row.className = 'flow-row';
+    flow.forEach((item, idx) => {
+      if (idx > 0) {
+        const arrow = document.createElement('span');
+        arrow.className = 'arrow-connector';
+        arrow.textContent = '→';
+        row.appendChild(arrow);
+      }
+      const node = document.createElement('div');
+      node.className = `node ${item.t}${item.des ? ' design-badge' : ''}`;
+      let inner = item.n;
+      if (item.s) inner += ` <span class="diff-stars">${item.s}</span>`;
+      inner += ` <span class="pts">${item.p}p</span>`;
+      node.innerHTML = inner;
+
+      node.addEventListener('mouseenter', () => {
+        let html = `<div class="t-name ${item.t}">${item.n}</div>`;
+        html += `<div class="t-desc">${item.d}</div>`;
+        html += `<div class="t-tags">`;
+        html += `<span class="tag t-pts">${item.p} pts</span>`;
+        if (item.s) html += `<span class="tag t-diff">${item.s}</span>`;
+        if (item.des) html += `<span class="tag t-des">Design Scored</span>`;
+        html += `</div>`;
+        tooltip.innerHTML = html;
+        tooltip.classList.add('show');
+      });
+      node.addEventListener('mousemove', (e) => {
+        let x = e.clientX + 16, y = e.clientY + 16;
+        const r = tooltip.getBoundingClientRect();
+        if (x + r.width > window.innerWidth - 20) x = e.clientX - r.width - 16;
+        if (y + r.height > window.innerHeight - 20) y = e.clientY - r.height - 16;
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+      });
+      node.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+      row.appendChild(node);
+    });
+    body.appendChild(row);
+  });
+
+  section.appendChild(body);
+  tree.appendChild(section);
+});
+</script>
+</body>
+</html>
